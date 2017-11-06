@@ -15,6 +15,9 @@ def libDescription = 'Powerful and easy SharedPreferences wrapper, with automati
 def libVersion = "0.0.1"// This is the library version used when deploying the artifact
 def gitTag = '0.0.1'
 
+group = libGroupId //bintray org/group name
+version = libVersion //version
+
 android {
     compileSdkVersion 27
     buildToolsVersion "27.0.0"
