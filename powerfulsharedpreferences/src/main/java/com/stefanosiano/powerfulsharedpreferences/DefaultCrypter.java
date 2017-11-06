@@ -23,6 +23,7 @@ final class DefaultCrypter implements Crypter {
 
     /**
      * Crypter that handles encryption of SharedPreferences values
+     * It uses AES algorithm and then encode/decode data in base64.
      *
      * @param pass Password used to generate the key
      * @param salt Salt of the key
