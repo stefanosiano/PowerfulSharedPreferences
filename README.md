@@ -49,8 +49,7 @@ All values will be automatically encrypted and decrypted (if Prefs.setCrypter() 
   
   
 Through Prefs.setCrypter(crypter) method, you can provide your own encryption implementation, in order to have more control over it.  
-If you just want an easy encryption method, just use Prefs.setDefaultCrypter(password, salt)
-  
+If you just want an easy encryption method, just use Prefs.setDefaultCrypter(password, salt). Default crypter uses AES algorithm and then encode/decode data in base64.  
   
   
   
