@@ -1,10 +1,10 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
-/**
- * Created by stefano on 06/11/17.
- */
-
+/** Interface used to encrypt and decrypt data in SharedPreferences */
 public interface Crypter {
-    String decrypt(String value);
-    String encrypt(String value);
+
+    /** Decrypts a String */
+    String decrypt(String value) throws RuntimeException;
+    /** Encrypts a String */
+    String encrypt(String value) throws RuntimeException;
 }

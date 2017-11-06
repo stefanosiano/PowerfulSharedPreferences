@@ -1,9 +1,7 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
-import android.os.Build;
 import android.util.Base64;
 
-import java.io.UnsupportedEncodingException;
 import java.security.Key;
 
 import javax.crypto.Cipher;
@@ -12,31 +10,39 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * Default class that handles encryption of SharedPreferences values.
- */
-
+/** Default class that handles encryption of SharedPreferences values. */
 final class DefaultCrypter implements Crypter {
 
     private final String CHARSET_UTF8  = "UTF-8";
     private final char[] HEX_CHARS = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
-    private final int LENGTH_PASS = 16;
     private final int LENGTH_KEY = 128;
     private final int ITERATION = 16;
 
-    private Key key;
+    private final Key key;
 
+    /**
+     * Crypter that handles encryption of SharedPreferences values
+     *
+     * @param pass Password used to generate the key
+     * @param salt Salt of the key
+     */
     DefaultCrypter(String pass, byte[] salt) {
         this.key = generateKey(pass, salt);
     }
 
 
+    /**
+     * Generates the Key used by the Cipher objects
+     *
+     * @param pass Password used to generate the key
+     * @param salt Salt of the key
+     */
     private Key generateKey(String pass, byte[] salt) {
         try {
             return new SecretKeySpec(SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
                     .generateSecret(new PBEKeySpec(
-                            new StringBuilder(getIdKey(pass)).reverse().toString().toCharArray(),
+                            pass.toCharArray(),
                             salt,
                             ITERATION,
                             LENGTH_KEY))
@@ -47,35 +53,11 @@ final class DefaultCrypter implements Crypter {
         }
     }
 
-    private synchronized String getIdKey(String pass) {
-        String salt;
-        String base64key;
-        try {
-            salt = new StringBuilder(Base64.encodeToString((Build.BRAND + Build.MODEL).getBytes(CHARSET_UTF8), Base64.NO_WRAP))
-                    .reverse()
-                    .substring(0, 3);
-
-        } catch (Exception e) {
-            salt = "";
-            e.printStackTrace();
-        }
-        
-        try {
-            base64key = new StringBuilder(Base64.encodeToString(pass.getBytes(CHARSET_UTF8), Base64.NO_WRAP))
-                    .reverse().toString();
-
-            while(base64key.length() < LENGTH_PASS)
-                base64key = base64key.concat(salt).concat(base64key);
-
-            base64key = base64key.substring(0, LENGTH_PASS);
-            return base64key;
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            throw new RuntimeException("KeyGeneration Exception");
-        }
-    }
-
+    /**
+     * Initialize the cipher with the key created in the constructor
+     *
+     * @param cipherMode Whether should initialize encryption or decryption cipher
+     */
     private synchronized Cipher initCipher(int cipherMode) {
         try {
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
