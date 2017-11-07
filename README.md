@@ -55,7 +55,6 @@ If you just want an easy encryption method, just use Prefs.setDefaultCrypter(pas
   
 Gradle
 ------
-Not working yet  
   
 ```
 dependencies {
