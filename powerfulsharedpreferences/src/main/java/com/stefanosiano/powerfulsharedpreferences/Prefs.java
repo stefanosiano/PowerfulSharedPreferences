@@ -97,14 +97,10 @@ public final class Prefs {
     }
 
 
-
-
     public static <T> T get(final PowerfulPreference<T> basePreference) {
         try{
             String decrypted = decrypt(basePreference.getKey());
-            if(basePreference instanceof IPreference)
-                return basePreference.parse(decrypted);
-            return basePreference.parse();
+            return basePreference.parse(decrypted);
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
