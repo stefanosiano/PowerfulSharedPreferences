@@ -1,21 +1,21 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
 /**
- * PowerfulPreference wrapper for Integer
+ * PowerfulPreference wrapper for Float
  */
 
-class IPreference extends PowerfulPreference<Integer> {
+class FPreference extends PowerfulPreference<Float> {
 
     private String key;
-    private Integer defaultValue;
+    private Float defaultValue;
 
-    IPreference(String key, Integer defaultValue) {
+    FPreference(String key, Float defaultValue) {
         this.key = key;
         this.defaultValue = defaultValue;
     }
 
     @Override
-    public Integer getDefaultValue() {
+    public Float getDefaultValue() {
         return defaultValue;
     }
 
@@ -25,7 +25,7 @@ class IPreference extends PowerfulPreference<Integer> {
     }
 
     @Override
-    public Integer parse(String s) {
-        return Integer.parseInt(s);
+    public Float parse(String s) {
+        return Float.parseFloat(s);
     }
 }

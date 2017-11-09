@@ -1,11 +1,17 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
 /**
- * Created by stefano on 08/11/17.
+ * PowerfulPreference object used to retrieve information to save and retrieve data into SharedPreferences
  */
 
-public interface PowerfulPreference<T> {
-    T getDefaultValue();
-    String getKey();
-    T parse(String s);
+public abstract class PowerfulPreference<T> {
+
+    /** Returns the default value of the preference */
+    public abstract T getDefaultValue();
+
+    /** Returns the key of the preference */
+    public abstract String getKey();
+
+    /** Returns the data of the preference parsing a string */
+    abstract T parse(String s) throws Exception;
 }

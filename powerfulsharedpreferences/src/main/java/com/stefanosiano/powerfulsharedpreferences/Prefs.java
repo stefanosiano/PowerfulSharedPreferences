@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -67,49 +68,61 @@ public final class Prefs {
         mCrypter = null;
     }
 
+    //todo logging!
+    //todo handle change password (getAll, clear, putAll)
 
 
+/* ******************************************************************************************************************************************** */
+/* ******************************************************************************************************************************************** */
+/* ******************************************************************************************************************************************** */
+/* ******************************************************************************************************************************************** */
+/* ******************************************************************************************************************************************** */
+/* ******************************************************************************************************************************************** */
+/* ******************************************************************************************************************************************** */
 
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
 
     /**
-     * Retrieves a stored int value.
+     * Retrieves a stored preference.
      *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getInt(String, int)
+     * @param preference Preference to get data from
+     * @return The preference value if it exists and is valid, otherwise defValue.
      */
-    public static int get(final String key, final int defValue) {
+    public static <T> T get(final PowerfulPreference<T> preference) {
         try{
-            return Integer.parseInt(decrypt(key));
+            return preference.parse(decrypt(preference.getKey()));
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
-            return defValue;
+            return preference.getDefaultValue();
         }
     }
 
-
-    public static <T> T get(final PowerfulPreference<T> basePreference) {
-        try{
-            String decrypted = decrypt(basePreference.getKey());
-            return basePreference.parse(decrypted);
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return basePreference.getDefaultValue();
-        }
+    public static <T> void put(final PowerfulPreference<T> basePreference, T value) {
+        encrypt(basePreference.getKey(), value+"");
     }
 
-    public static IPreference newPref(String key, int value){
+    public static PowerfulPreference<Integer> newPref(String key, Integer value){
         return new IPreference(key, value);
+    }
+
+    public static PowerfulPreference<Long> newPref(String key, Long value){
+        return new LPreference(key, value);
+    }
+
+    public static PowerfulPreference<Float> newPref(String key, Float value){
+        return new FPreference(key, value);
+    }
+
+    public static PowerfulPreference<Double> newPref(String key, Double value){
+        return new DPreference(key, value);
+    }
+
+    public static PowerfulPreference<Boolean> newPref(String key, Boolean value){
+        return new BPreference(key, value);
+    }
+
+    public static PowerfulPreference<String> newPref(String key, String value){
+        return new SPreference(key, value);
     }
 
 /* ******************************************************************************************************************************************** */
@@ -147,6 +160,7 @@ public final class Prefs {
         return mPrefs.getAll();
     }
 
+
     /**
      * Retrieves a stored int value.
      *
@@ -155,7 +169,7 @@ public final class Prefs {
      * @return Returns the preference value if it exists and is valid, otherwise defValue.
      * @see android.content.SharedPreferences#getInt(String, int)
      */
-    public static int getInt(final String key, final int defValue) {
+    public static int get(final String key, final int defValue) {
         try{
             return Integer.parseInt(decrypt(key));
         }
@@ -165,7 +179,6 @@ public final class Prefs {
         }
     }
 
-
     /**
      * Retrieves a stored boolean value.
      *
@@ -174,7 +187,7 @@ public final class Prefs {
      * @return Returns the preference value if it exists and is valid, otherwise defValue.
      * @see android.content.SharedPreferences#getBoolean(String, boolean)
      */
-    public static boolean getBoolean(final String key, final boolean defValue) {
+    public static boolean get(final String key, final boolean defValue) {
         try{
             return Boolean.parseBoolean(decrypt(key));
         }
@@ -192,7 +205,7 @@ public final class Prefs {
      * @return Returns the preference value if it exists and is valid, otherwise defValue.
      * @see android.content.SharedPreferences#getLong(String, long)
      */
-    public static long getLong(final String key, final long defValue) {
+    public static long get(final String key, final long defValue) {
         try{
             return Long.parseLong(decrypt(key));
         }
@@ -210,7 +223,7 @@ public final class Prefs {
      * @return Returns the preference value if it exists and is valid, otherwise defValue.
      * @see android.content.SharedPreferences#getLong(String, long)
      */
-    public static double getDouble(final String key, final double defValue) {
+    public static double get(final String key, final double defValue) {
         try{
             return Double.parseDouble(decrypt(key));
         }
@@ -228,7 +241,7 @@ public final class Prefs {
      * @return Returns the preference value if it exists and is valid, otherwise defValue.
      * @see android.content.SharedPreferences#getFloat(String, float)
      */
-    public static float getFloat(final String key, final float defValue) {
+    public static float get(final String key, final float defValue) {
         try{
             return Float.parseFloat(decrypt(key));
         }
@@ -246,7 +259,7 @@ public final class Prefs {
      * @return Returns the preference value if it exists and is valid, otherwise defValue.
      * @see android.content.SharedPreferences#getString(String, String)
      */
-    public static String getString(final String key, final String defValue) {
+    public static String get(final String key, final String defValue) {
         try{
             return decrypt(key);
         }
@@ -263,10 +276,8 @@ public final class Prefs {
      * @param value The new value for the data.
      * @see android.content.SharedPreferences.Editor#putLong(String, long)
      */
-    public static void putLong(final String key, final long value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putString(key, encrypt(value+""));
-        editor.apply();
+    public static void put(final String key, final long value) {
+        encrypt(key, value+"");
     }
 
     /**
@@ -276,10 +287,8 @@ public final class Prefs {
      * @param value The new value for the data.
      * @see android.content.SharedPreferences.Editor#putInt(String, int)
      */
-    public static void putInt(final String key, final int value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putInt(key, value);
-        editor.apply();
+    public static void put(final String key, final int value) {
+        encrypt(key, value+"");
     }
 
     /**
@@ -289,10 +298,8 @@ public final class Prefs {
      * @param value The new value for the data.
      * @see android.content.SharedPreferences.Editor#putLong(String, long)
      */
-    public static void putDouble(final String key, final double value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putString(key, encrypt(value+""));
-        editor.apply();
+    public static void put(final String key, final double value) {
+        encrypt(key, value+"");
     }
 
     /**
@@ -302,10 +309,8 @@ public final class Prefs {
      * @param value The new value for the data.
      * @see android.content.SharedPreferences.Editor#putFloat(String, float)
      */
-    public static void putFloat(final String key, final float value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putString(key, encrypt(value+""));
-        editor.apply();
+    public static void put(final String key, final float value) {
+        encrypt(key, value+"");
     }
 
     /**
@@ -315,10 +320,8 @@ public final class Prefs {
      * @param value The new value for the data.
      * @see android.content.SharedPreferences.Editor#putBoolean(String, boolean)
      */
-    public static void putBoolean(final String key, final boolean value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putString(key, encrypt(value+""));
-        editor.apply();
+    public static void put(final String key, final boolean value) {
+        encrypt(key, value+"");
     }
 
     /**
@@ -328,10 +331,8 @@ public final class Prefs {
      * @param value The new value for the data.
      * @see android.content.SharedPreferences.Editor#putString(String, String)
      */
-    public static void putString(final String key, final String value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
-        editor.putString(key, encrypt(value+""));
-        editor.apply();
+    public static void put(final String key, final String value) {
+        encrypt(key, value+"");
     }
 
     /**
@@ -342,8 +343,20 @@ public final class Prefs {
      */
     public static void remove(final String key) {
         SharedPreferences.Editor editor = mPrefs.edit();
-        editor.remove(key);
-        editor.apply();
+        if(mCrypter == null) {
+            editor.remove(key);
+            editor.apply();
+        }
+
+        try{
+            editor.remove(mCrypter.decrypt(key));
+            editor.apply();
+        }
+        catch (Exception e){
+            Log.e(TAG, e.toString());
+            editor.remove(key);
+            editor.apply();
+        }
     }
 
     /**
@@ -354,7 +367,16 @@ public final class Prefs {
      * @see android.content.SharedPreferences#contains(String)
      */
     public static boolean contains(final String key) {
-        return mPrefs.contains(key);
+        if(mCrypter == null)
+            return mPrefs.contains(key);
+
+        try{
+            return mPrefs.contains(mCrypter.decrypt(key));
+        }
+        catch (Exception e){
+            Log.e(TAG, e.toString());
+            return mPrefs.contains(key);
+        }
     }
 
     /**
@@ -377,7 +399,7 @@ public final class Prefs {
             mPrefs.getString(key, "");
 
         try{
-            return mCrypter.decrypt(mPrefs.getString(key, ""));
+            return mCrypter.decrypt(mPrefs.getString(mCrypter.decrypt(key), ""));
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
@@ -386,12 +408,20 @@ public final class Prefs {
     }
 
     /** Encrypts a value */
-    private static String encrypt(String value) {
-        if(mCrypter == null)
+    private static String encrypt(String key, String value) {
+        final SharedPreferences.Editor editor = mPrefs.edit();
+
+        if(mCrypter == null) {
+            editor.putString(key, value.trim());
+            editor.apply();
             return value.trim();
+        }
 
         try{
-            return mCrypter.encrypt(value.trim());
+            String value2 = mCrypter.encrypt(value.trim());
+            editor.putString(mCrypter.encrypt(key), value2);
+            editor.apply();
+            return value2;
         }
         catch (Exception e){
             Log.e(TAG, e.toString());

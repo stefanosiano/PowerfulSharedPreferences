@@ -86,6 +86,7 @@ final class DefaultCrypter implements Crypter {
 
             // Encrypt the byte data of the string
             byte[] encrypted = enCipher.doFinal(mString.getBytes(CHARSET_UTF8));
+            byte[] encrypted = mString.getBytes(CHARSET_UTF8);
 
             return new String(Base64.encode(encrypted, Base64.NO_WRAP), CHARSET_UTF8);
 

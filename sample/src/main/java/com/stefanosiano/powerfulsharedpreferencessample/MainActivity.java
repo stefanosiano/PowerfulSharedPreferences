@@ -9,21 +9,28 @@ import com.stefanosiano.powerfulsharedpreferences.Prefs;
 
 public class MainActivity extends Activity {
 
-    public static final PowerfulPreference<Integer> preference1 = Prefs.newPref("", 1);
+    public static final PowerfulPreference<Integer> preference1 = Prefs.newPref("p1", 1);
+    public static final PowerfulPreference<Double> preference2 = Prefs.newPref("p2", 1D);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Prefs.putLong("a", 142);
-        Prefs.putFloat("b", 42.9F);
+        Prefs.put("a", 142);
+//        Prefs.put("b", 42.9F);
 
         Log.e("ASD", Prefs.get("a", 0)+"");
+        /*
         Log.e("ASD", Prefs.get("b", 0)+"");
         Log.e("ASD", Prefs.get("b2", 0)+"");
 
 
-        Integer s = Prefs.get(preference1);
-
+        Log.e("ASD", Prefs.get(preference1)+"");
+        Log.e("ASD", Prefs.get(preference2)+"");
+        Prefs.put(preference1, 2);
+        Prefs.put(preference2, 2.54);
+        Log.e("ASD", Prefs.get(preference1)+"");
+        Log.e("ASD", Prefs.get(preference2)+"");*/
     }
 }

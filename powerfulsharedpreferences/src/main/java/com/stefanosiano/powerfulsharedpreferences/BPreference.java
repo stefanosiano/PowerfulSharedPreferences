@@ -1,21 +1,21 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
 /**
- * PowerfulPreference wrapper for Integer
+ * PowerfulPreference wrapper for Boolean
  */
 
-class IPreference extends PowerfulPreference<Integer> {
+class BPreference extends PowerfulPreference<Boolean> {
 
     private String key;
-    private Integer defaultValue;
+    private Boolean defaultValue;
 
-    IPreference(String key, Integer defaultValue) {
+    BPreference(String key, Boolean defaultValue) {
         this.key = key;
         this.defaultValue = defaultValue;
     }
 
     @Override
-    public Integer getDefaultValue() {
+    public Boolean getDefaultValue() {
         return defaultValue;
     }
 
@@ -25,7 +25,7 @@ class IPreference extends PowerfulPreference<Integer> {
     }
 
     @Override
-    public Integer parse(String s) {
-        return Integer.parseInt(s);
+    public Boolean parse(String s) {
+        return Boolean.parseBoolean(s);
     }
 }
