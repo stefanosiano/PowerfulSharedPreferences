@@ -399,7 +399,7 @@ public final class Prefs {
             mPrefs.getString(key, "");
 
         try{
-            return mCrypter.decrypt(mPrefs.getString(mCrypter.decrypt(key), ""));
+            return mCrypter.decrypt(mPrefs.getString(mCrypter.encrypt(key), ""));
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
