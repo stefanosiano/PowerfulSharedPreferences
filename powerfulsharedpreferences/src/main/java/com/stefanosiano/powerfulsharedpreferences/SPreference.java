@@ -28,4 +28,9 @@ class SPreference extends PowerfulPreference<String> {
     public String parse(String s) {
         return s;
     }
+
+    @Override
+    public Class getPrefClass() {
+        return String.class;
+    }
 }

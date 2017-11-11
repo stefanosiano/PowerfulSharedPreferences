@@ -1,10 +1,10 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -34,6 +34,7 @@ public final class Prefs {
      */
     public static void init(Context context, String prefsName, int mode){
         mPrefs = context.getApplicationContext().getSharedPreferences(prefsName, mode);
+        Logger.logInit();
     }
 
     /**
@@ -64,41 +65,9 @@ public final class Prefs {
 
     /** Releases data hold by this class. Call this in your {@link Application#onTerminate()} method */
     public static void destroy(){
+        Logger.logDestroy();
         mPrefs = null;
         mCrypter = null;
-    }
-
-    //todo logging!
-    //todo handle change password (getAll, clear, putAll)
-
-
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-
-
-    /**
-     * Retrieves a stored preference.
-     *
-     * @param preference Preference to get data from
-     * @return The preference value if it exists and is valid, otherwise defValue.
-     */
-    public static <T> T get(final PowerfulPreference<T> preference) {
-        try{
-            return preference.parse(decrypt(preference.getKey()));
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return preference.getDefaultValue();
-        }
-    }
-
-    public static <T> void put(final PowerfulPreference<T> basePreference, T value) {
-        encrypt(basePreference.getKey(), value+"");
     }
 
     public static PowerfulPreference<Integer> newPref(String key, Integer value){
@@ -125,31 +94,147 @@ public final class Prefs {
         return new SPreference(key, value);
     }
 
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
-/* ******************************************************************************************************************************************** */
+    //todo handle change password (getAll, clear, putAll)
+    //todo save salt
 
 
+    /**
+     * Retrieves a stored preference.
+     *
+     * @param preference Preference to get data from
+     * @return The preference value if it exists and is valid, otherwise defValue.
+     */
+    public static <T> T get(final PowerfulPreference<T> preference) {
+        return parse(preference, getAndDecrypt(preference.getKey()));
+    }
 
 
+    /**
+     * Retrieves a stored preference disabling encryption.
+     *
+     * @param preference Preference to get data from
+     * @return The preference value if it exists and is valid, otherwise defValue.
+     */
+    public static <T> T getUnencrypted(final PowerfulPreference<T> preference) {
+        return parse(preference, mPrefs.getString(preference.getKey(), ""));
+    }
+
+    /** Parses a stored preference. */
+    private static <T> T parse(final PowerfulPreference<T> preference, String value) {
+        if(TextUtils.isEmpty(value)){
+            Logger.logParseNotFound(preference.getKey(), preference.getDefaultValue()+"");
+            return preference.getDefaultValue();
+        }
+        try{
+            T parsed = preference.parse(value);
+            Logger.logGet(preference.getKey(), value, preference.getPrefClass());
+            return parsed;
+        }
+        catch (NumberFormatException e){
+            Logger.logParseNumberException(e, preference.getKey(), preference.getDefaultValue()+"");
+            return preference.getDefaultValue();
+        }
+        catch (Exception e){
+            Logger.logParseTypeException(preference.getKey(), preference.getDefaultValue()+"");
+            return preference.getDefaultValue();
+        }
+    }
+
+    public static <T> void put(final PowerfulPreference<T> basePreference, T value) {
+        Logger.logPut(basePreference.getKey(), value+"");
+        encryptAndPut(basePreference.getKey(), value+"");
+    }
+
+    public static <T> void putUnencrypted(final PowerfulPreference<T> basePreference, T value) {
+        Logger.logPut(basePreference.getKey(), value+"");
+        mPrefs.edit().putString(basePreference.getKey(), value+"").apply();
+    }
 
 
+    /**
+     * Retrieves a stored value.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * Note: The return type is inferred from the default value type!
+     *
+     * @param key      The key of the data to retrieve.
+     * @param defValue Value to return if this preference does not exist or value is invalid.
+     * @return The preference value if it exists and is valid, otherwise defValue.
+     */
+    public static <T> T get(final String key, final T defValue) {
+        String value = getAndDecrypt(key);
+        return parse(key, defValue, value);
+    }
 
 
+    /**
+     * Retrieves a stored value.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * Note: The return type is inferred from the default value type!
+     *
+     * @param key      The key of the data to retrieve.
+     * @param defValue Value to return if this preference does not exist or value is invalid.
+     * @return The preference value if it exists and is valid, otherwise defValue.
+     */
+    public static <T> T getUnencrypted(final String key, final T defValue) {
+        String value = mPrefs.getString(key, "");
+        return parse(key, defValue, value);
+    }
 
 
+    /** Parses the retrieved value. */
+    private static <T> T parse(final String key, final T defValue, String value) {
+        if(TextUtils.isEmpty(value)){
+            Logger.logParseNotFound(key, defValue+"");
+            return defValue;
+        }
+        try{
+
+            if(defValue instanceof Integer) {Logger.logGet(key, value+"", Integer.class); return (T) (Object) Integer.parseInt(value);}
+            if(defValue instanceof Long) {Logger.logGet(key, value+"", Long.class); return (T) (Object) Long.parseLong(value);}
+            if(defValue instanceof Float) {Logger.logGet(key, value+"", Float.class); return (T) (Object) Float.parseFloat(value);}
+            if(defValue instanceof Double) {Logger.logGet(key, value+"", Double.class); return (T) (Object) Double.parseDouble(value);}
+            if(defValue instanceof Boolean) {Logger.logGet(key, value+"", Boolean.class); return (T) (Object) Boolean.parseBoolean(value);}
+            if(defValue instanceof String) {Logger.logGet(key, value+"", String.class); return (T) value;}
+
+            Logger.logParseTypeException(key, defValue+"");
+            return defValue;
+        }
+        catch (NumberFormatException e){
+            Logger.logParseNumberException(e, key, defValue+"");
+            return defValue;
+        }
+    }
+
+    /**
+     * Stores a value.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * @param key   The key of the data to modify.
+     * @param value The new value for the data.
+     */
+    public static <T> void put(final String key, final T value) {
+        Logger.logPut(key, value+"");
+        encryptAndPut(key, value+"");
+    }
 
 
-
-
-
-
-
-
+    /**
+     * Stores a value.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * @param key   The key of the data to modify.
+     * @param value The new value for the data.
+     */
+    public static <T> void putUnencrypted(final String key, final T value) {
+        Logger.logPut(key, value+"");
+        mPrefs.edit().putString(key, value+"").apply();
+    }
 
 
     /**
@@ -157,183 +242,10 @@ public final class Prefs {
      * @see android.content.SharedPreferences#getAll()
      */
     public static Map<String, ?> getAll() {
+        Logger.logGetAll();
         return mPrefs.getAll();
     }
 
-
-    /**
-     * Retrieves a stored int value.
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getInt(String, int)
-     */
-    public static int get(final String key, final int defValue) {
-        try{
-            return Integer.parseInt(decrypt(key));
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return defValue;
-        }
-    }
-
-    /**
-     * Retrieves a stored boolean value.
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getBoolean(String, boolean)
-     */
-    public static boolean get(final String key, final boolean defValue) {
-        try{
-            return Boolean.parseBoolean(decrypt(key));
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return defValue;
-        }
-    }
-
-    /**
-     * Retrieves a stored long value.
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getLong(String, long)
-     */
-    public static long get(final String key, final long defValue) {
-        try{
-            return Long.parseLong(decrypt(key));
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return defValue;
-        }
-    }
-
-    /**
-     * Returns the double that has been saved as a string.
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getLong(String, long)
-     */
-    public static double get(final String key, final double defValue) {
-        try{
-            return Double.parseDouble(decrypt(key));
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return defValue;
-        }
-    }
-
-    /**
-     * Retrieves a stored float value.
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getFloat(String, float)
-     */
-    public static float get(final String key, final float defValue) {
-        try{
-            return Float.parseFloat(decrypt(key));
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return defValue;
-        }
-    }
-
-    /**
-     * Retrieves a stored String value.
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return Returns the preference value if it exists and is valid, otherwise defValue.
-     * @see android.content.SharedPreferences#getString(String, String)
-     */
-    public static String get(final String key, final String defValue) {
-        try{
-            return decrypt(key);
-        }
-        catch (Exception e){
-            Log.e(TAG, e.toString());
-            return defValue;
-        }
-    }
-
-    /**
-     * Stores a long value.
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @see android.content.SharedPreferences.Editor#putLong(String, long)
-     */
-    public static void put(final String key, final long value) {
-        encrypt(key, value+"");
-    }
-
-    /**
-     * Stores an integer value.
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @see android.content.SharedPreferences.Editor#putInt(String, int)
-     */
-    public static void put(final String key, final int value) {
-        encrypt(key, value+"");
-    }
-
-    /**
-     * Stores a double value as a long raw bits value.
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @see android.content.SharedPreferences.Editor#putLong(String, long)
-     */
-    public static void put(final String key, final double value) {
-        encrypt(key, value+"");
-    }
-
-    /**
-     * Stores a float value.
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @see android.content.SharedPreferences.Editor#putFloat(String, float)
-     */
-    public static void put(final String key, final float value) {
-        encrypt(key, value+"");
-    }
-
-    /**
-     * Stores a boolean value.
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @see android.content.SharedPreferences.Editor#putBoolean(String, boolean)
-     */
-    public static void put(final String key, final boolean value) {
-        encrypt(key, value+"");
-    }
-
-    /**
-     * Stores a String value.
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @see android.content.SharedPreferences.Editor#putString(String, String)
-     */
-    public static void put(final String key, final String value) {
-        encrypt(key, value+"");
-    }
 
     /**
      * Removes a preference value.
@@ -342,21 +254,31 @@ public final class Prefs {
      * @see android.content.SharedPreferences.Editor#remove(String)
      */
     public static void remove(final String key) {
+        Logger.logRemove(key);
         SharedPreferences.Editor editor = mPrefs.edit();
         if(mCrypter == null) {
             editor.remove(key);
-            editor.apply();
         }
 
         try{
-            editor.remove(mCrypter.decrypt(key));
-            editor.apply();
+            editor.remove(mCrypter.encrypt(key));
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
             editor.remove(key);
-            editor.apply();
         }
+        editor.apply();
+    }
+
+    /**
+     * Removes a preference value.
+     *
+     * @param key The key of the data to remove.
+     * @see android.content.SharedPreferences.Editor#remove(String)
+     */
+    public static void removeUnencrypted(final String key) {
+        Logger.logRemove(key);
+        mPrefs.edit().remove(key).apply();
     }
 
     /**
@@ -367,16 +289,29 @@ public final class Prefs {
      * @see android.content.SharedPreferences#contains(String)
      */
     public static boolean contains(final String key) {
+        Logger.logContains(key);
         if(mCrypter == null)
             return mPrefs.contains(key);
 
         try{
-            return mPrefs.contains(mCrypter.decrypt(key));
+            return mPrefs.contains(mCrypter.encrypt(key));
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
             return mPrefs.contains(key);
         }
+    }
+
+    /**
+     * Checks if a value is stored for the given key.
+     *
+     * @param key The key of the data to check.
+     * @return True if the storage contains this key value, False otherwise.
+     * @see android.content.SharedPreferences#contains(String)
+     */
+    public static boolean containsUnencrypted(final String key) {
+        Logger.logContains(key);
+        return mPrefs.contains(key);
     }
 
     /**
@@ -387,45 +322,53 @@ public final class Prefs {
      * @see android.content.SharedPreferences.Editor#clear()
      */
     public static SharedPreferences.Editor clear() {
+        Logger.logClear();
         final SharedPreferences.Editor editor = mPrefs.edit().clear();
         editor.apply();
         return editor;
     }
 
 
+
     /** Decrypts the value corresponding to a key */
-    private static String decrypt(String key) {
+    private static String getAndDecrypt(String key) {
         if(mCrypter == null)
             mPrefs.getString(key, "");
 
         try{
-            return mCrypter.decrypt(mPrefs.getString(mCrypter.encrypt(key), ""));
+            String encryptedKey = mCrypter.encrypt(key);
+            String encryptedValue = mPrefs.getString(encryptedKey, "");
+            String value = mCrypter.decrypt(encryptedValue);
+            Logger.logDecrypt(key, encryptedKey, encryptedValue, value);
+            return value;
         }
         catch (Exception e){
-            Log.e(TAG, e.toString());
+            Logger.logDecryptException(e, key);
             return mPrefs.getString(key, "");
         }
     }
 
     /** Encrypts a value */
-    private static String encrypt(String key, String value) {
+    private static void encryptAndPut(String key, String value) {
         final SharedPreferences.Editor editor = mPrefs.edit();
 
         if(mCrypter == null) {
-            editor.putString(key, value.trim());
-            editor.apply();
-            return value.trim();
+            editor.putString(key, value.trim()).apply();
+            return;
         }
 
         try{
-            String value2 = mCrypter.encrypt(value.trim());
-            editor.putString(mCrypter.encrypt(key), value2);
-            editor.apply();
-            return value2;
+            String encryptedKey = mCrypter.encrypt(key);
+            String encryptedValue = mCrypter.encrypt(value.trim());
+
+            Logger.logEncrypt(key, encryptedKey, encryptedValue, value.trim());
+
+            editor.putString(encryptedKey, encryptedValue).apply();
+            return;
         }
         catch (Exception e){
-            Log.e(TAG, e.toString());
-            return "";
+            Logger.logEncryptException(e, key);
+            return;
         }
     }
 

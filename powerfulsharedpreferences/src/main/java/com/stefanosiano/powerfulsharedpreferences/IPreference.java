@@ -28,4 +28,9 @@ class IPreference extends PowerfulPreference<Integer> {
     public Integer parse(String s) {
         return Integer.parseInt(s);
     }
+
+    @Override
+    public Class getPrefClass() {
+        return Integer.class;
+    }
 }

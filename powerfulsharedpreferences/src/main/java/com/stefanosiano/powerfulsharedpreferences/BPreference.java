@@ -28,4 +28,9 @@ class BPreference extends PowerfulPreference<Boolean> {
     public Boolean parse(String s) {
         return Boolean.parseBoolean(s);
     }
+
+    @Override
+    public Class getPrefClass() {
+        return Boolean.class;
+    }
 }

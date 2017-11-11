@@ -28,4 +28,9 @@ class FPreference extends PowerfulPreference<Float> {
     public Float parse(String s) {
         return Float.parseFloat(s);
     }
+
+    @Override
+    public Class getPrefClass() {
+        return Float.class;
+    }
 }

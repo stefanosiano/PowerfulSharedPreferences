@@ -28,4 +28,9 @@ class DPreference extends PowerfulPreference<Double> {
     public Double parse(String s) {
         return Double.parseDouble(s);
     }
+
+    @Override
+    public Class getPrefClass() {
+        return Double.class;
+    }
 }

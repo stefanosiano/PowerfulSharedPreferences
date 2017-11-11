@@ -28,4 +28,9 @@ class LPreference extends PowerfulPreference<Long> {
     public Long parse(String s) {
         return Long.parseLong(s);
     }
+
+    @Override
+    public Class getPrefClass() {
+        return Long.class;
+    }
 }
