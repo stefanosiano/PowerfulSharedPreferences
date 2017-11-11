@@ -1,6 +1,5 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
-import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -11,7 +10,7 @@ import android.util.Log;
 import java.util.Map;
 
 /**
- * SharedPreferences wrapper class, with encryption.
+ * SharedPreferences wrapper class, with added features like encryption, logging and type safety.
  */
 public final class Prefs {
     
@@ -70,26 +69,58 @@ public final class Prefs {
         mCrypter = null;
     }
 
+    /**
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference for Integers
+     */
     public static PowerfulPreference<Integer> newPref(String key, Integer value){
         return new IPreference(key, value);
     }
 
+
+    /**
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference for Longs
+     */
     public static PowerfulPreference<Long> newPref(String key, Long value){
         return new LPreference(key, value);
     }
 
+
+    /**
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference for Floats
+     */
     public static PowerfulPreference<Float> newPref(String key, Float value){
         return new FPreference(key, value);
     }
 
+    /**
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference for Doubles
+     */
     public static PowerfulPreference<Double> newPref(String key, Double value){
         return new DPreference(key, value);
     }
 
+    /**
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference for Booleans
+     */
     public static PowerfulPreference<Boolean> newPref(String key, Boolean value){
         return new BPreference(key, value);
     }
 
+    /**
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference for Strings
+     */
     public static PowerfulPreference<String> newPref(String key, String value){
         return new SPreference(key, value);
     }
@@ -140,14 +171,26 @@ public final class Prefs {
         }
     }
 
-    public static <T> void put(final PowerfulPreference<T> basePreference, T value) {
-        Logger.logPut(basePreference.getKey(), value+"");
-        encryptAndPut(basePreference.getKey(), value+"");
+    /**
+     * Stores a preference.
+     *
+     * @param preference Preference to get key from
+     * @param value value to store
+     */
+    public static <T> void put(final PowerfulPreference<T> preference, T value) {
+        Logger.logPut(preference.getKey(), value+"");
+        encryptAndPut(preference.getKey(), value+"");
     }
 
-    public static <T> void putUnencrypted(final PowerfulPreference<T> basePreference, T value) {
-        Logger.logPut(basePreference.getKey(), value+"");
-        mPrefs.edit().putString(basePreference.getKey(), value+"").apply();
+    /**
+     * Stores a preference disabling encryption.
+     *
+     * @param preference Preference to get key from
+     * @param value value to store
+     */
+    public static <T> void putUnencrypted(final PowerfulPreference<T> preference, T value) {
+        Logger.logPut(preference.getKey(), value+"");
+        mPrefs.edit().putString(preference.getKey(), value+"").apply();
     }
 
 
