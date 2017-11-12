@@ -3,18 +3,25 @@ package com.stefanosiano.powerfulsharedpreferences;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.security.SecureRandom;
 import java.util.Map;
 
 /**
  * SharedPreferences wrapper class, with added features like encryption, logging and type safety.
  */
 public final class Prefs {
+
+    //todo handle change password (getAll, decode values, create new map with decoded keys, create new crypter, clear, putAll)
+
+    //todo support multiple sharedPreferences, through map<name, sharedPref> and map<name, Crypter>,
+    //todo          PowerfulPreference<T> having prefName
+    //todo          addPrefFile(name, mode, Crypter|password, salt) and addPrefFile(name, mode) using mCrypter
     
     private static final String TAG = Prefs.class.getSimpleName();
+    private final static String CHARSET_UTF8  = "UTF-8";
 
     private static SharedPreferences mPrefs;
     private static Crypter mCrypter;
@@ -25,46 +32,113 @@ public final class Prefs {
     /**
      * Initialize the Prefs class to keep a reference to the SharedPreference for this application.
      * The SharedPreference will use the package name of the application as the Key.
-     * To enable data encryption call {@link #setCrypter(Crypter)} or {@link #setDefaultCrypter(String, byte[])}
      *
      * @param context Context object
-     * @param prefsName name of the sharedPreferences file
-     * @param mode mode of the sharedPreferences file
      */
-    public static void init(Context context, String prefsName, int mode){
-        mPrefs = context.getApplicationContext().getSharedPreferences(prefsName, mode);
-        Logger.logInit();
+    public static Builder init(Context context){
+        return new Builder(context.getApplicationContext());
     }
 
-    /**
-     * Set the custom crypter that will be used to encrypt and decrypt values inside SharedPreferences.
-     * Passing null will not encrypt data
-     * @param crypter Interface that will be used when putting and getting data from SharedPreferences
-     */
-    public static void setCrypter(Crypter crypter){
-        mCrypter = crypter;
-    }
+     public static final class Builder {
+
+        public static final int LOG_DISABLED = 0;
+        public static final int LOG_ERRORS = 1;
+        public static final int LOG_VALUES = 2;
+        public static final int LOG_VERBOSE = 3;
+
+        private Crypter crypter;
+        private Context context;
+        private String prefsName, password;
+        private byte[] salt;
+        private int mode;
+        private int logLevel = LOG_DISABLED;
+
+        Builder(Context context){
+            this.context = context;
+            this.mode = Context.MODE_PRIVATE;
+            this.prefsName = context.getPackageName();
+        }
+        /**
+         * Set the custom crypter that will be used to encrypt and decrypt values inside SharedPreferences.
+         * Passing null will not encrypt data
+         * @param crypter Interface that will be used when putting and getting data from SharedPreferences
+         */
+        public Builder setDefaultCrypter(Crypter crypter){
+            this.crypter = crypter;
+            return this;
+        }
+
+        /**
+         * Use the default crypter that will be used to encrypt and decrypt values inside SharedPreferences.
+         * The default crypter uses AES algorithm and then encode/decode data in base64.
+         *
+         * @param pass Must be non-null, and represent the string that will be used to generate the key
+         *             of the encryption algorithm
+         * @param salt If null, salt will be automatically created using SecureRandom and saved in
+         *             the sharedPreferences (after being encrypted using given password)
+         */
+        public Builder setDefaultCrypter(String pass, byte[] salt){
+            this.password = pass;
+            this.salt = salt;
+            return this;
+        }
+
+         /**
+          * Set the name and the mode of the sharedPreferences file
+          * @param prefsName name of the sharedPreferences file
+          * @param mode mode of the sharedPreferences file
+          */
+        public Builder setPrefsName(String prefsName, int mode){
+            this.prefsName = prefsName;
+            this.mode = mode;
+            return this;
+        }
+
+        public Builder setLogLevel(int logLevel){
+            this.logLevel = logLevel;
+            return this;
+        }
+
+        public void build(){
+            mPrefs = context.getApplicationContext().getSharedPreferences(prefsName, mode);
+
+            //If the user set a password, I generate the default crypter and use it
+            if(!TextUtils.isEmpty(password)) mCrypter = generateDefaultCrypter(mPrefs, password, salt);
+            else mCrypter = this.crypter;
+
+            Logger.setLevel(logLevel, TAG);
+            Logger.logBuild();
+        }
 
 
-    /**
-     * Use the default crypter that will be used to encrypt and decrypt values inside SharedPreferences.
-     * The default crypter uses AES algorithm and then encode/decode data in base64.
-     *
-     * @param pass Must be non-null, and represent the string that will be used to generate the key
-     *             of the encryption algorithm
-     * @param salt If null, salt will be automatically created using
-     *             Build.DEVICE + Build.BOARD + Build.HARDWARE + Build.MODEL + Build.MANUFACTURER
-     */
-    public static void setDefaultCrypter(String pass, byte[] salt){
-        if(salt == null)
-            salt = (Build.DEVICE + Build.BOARD + Build.HARDWARE + Build.MODEL + Build.MANUFACTURER).getBytes();
-        mCrypter = new DefaultCrypter(pass, salt);
+        private Crypter generateDefaultCrypter(SharedPreferences prefs, String pass, byte[] salt){
+            Crypter c = new DefaultCrypter(pass, pass.getBytes());
+
+            if(salt == null) {
+                try {
+                    String encryptedSalt = prefs.getString(c.encrypt("key") + "!", "");
+
+                    if(TextUtils.isEmpty(encryptedSalt)) {
+                        encryptedSalt = new SecureRandom().nextLong()+"";
+                        prefs.edit().putString(c.encrypt("key")+"!", c.encrypt(encryptedSalt)).apply();
+                    }
+                    else  encryptedSalt = c.decrypt(encryptedSalt);
+
+                    salt = encryptedSalt.getBytes(CHARSET_UTF8);
+                }
+                catch (Exception e){
+                    throw new RuntimeException("Salt generation error");
+                }
+            }
+            return new DefaultCrypter(pass, salt);
+        }
     }
+
 
 
     /** Releases data hold by this class. Call this in your {@link Application#onTerminate()} method */
-    public static void destroy(){
-        Logger.logDestroy();
+    public static void terminate(){
+        Logger.logTerminate();
         mPrefs = null;
         mCrypter = null;
     }
@@ -125,9 +199,6 @@ public final class Prefs {
         return new SPreference(key, value);
     }
 
-    //todo handle change password (getAll, clear, putAll)
-    //todo save salt
-
 
     /**
      * Retrieves a stored preference.
@@ -137,17 +208,6 @@ public final class Prefs {
      */
     public static <T> T get(final PowerfulPreference<T> preference) {
         return parse(preference, getAndDecrypt(preference.getKey()));
-    }
-
-
-    /**
-     * Retrieves a stored preference disabling encryption.
-     *
-     * @param preference Preference to get data from
-     * @return The preference value if it exists and is valid, otherwise defValue.
-     */
-    public static <T> T getUnencrypted(final PowerfulPreference<T> preference) {
-        return parse(preference, mPrefs.getString(preference.getKey(), ""));
     }
 
     /** Parses a stored preference. */
@@ -182,17 +242,6 @@ public final class Prefs {
         encryptAndPut(preference.getKey(), value+"");
     }
 
-    /**
-     * Stores a preference disabling encryption.
-     *
-     * @param preference Preference to get key from
-     * @param value value to store
-     */
-    public static <T> void putUnencrypted(final PowerfulPreference<T> preference, T value) {
-        Logger.logPut(preference.getKey(), value+"");
-        mPrefs.edit().putString(preference.getKey(), value+"").apply();
-    }
-
 
     /**
      * Retrieves a stored value.
@@ -211,23 +260,6 @@ public final class Prefs {
     }
 
 
-    /**
-     * Retrieves a stored value.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
-     *
-     * Note: The return type is inferred from the default value type!
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return The preference value if it exists and is valid, otherwise defValue.
-     */
-    public static <T> T getUnencrypted(final String key, final T defValue) {
-        String value = mPrefs.getString(key, "");
-        return parse(key, defValue, value);
-    }
-
-
     /** Parses the retrieved value. */
     private static <T> T parse(final String key, final T defValue, String value) {
         if(TextUtils.isEmpty(value)){
@@ -236,12 +268,13 @@ public final class Prefs {
         }
         try{
 
-            if(defValue instanceof Integer) {Logger.logGet(key, value+"", Integer.class); return (T) (Object) Integer.parseInt(value);}
-            if(defValue instanceof Long) {Logger.logGet(key, value+"", Long.class); return (T) (Object) Long.parseLong(value);}
-            if(defValue instanceof Float) {Logger.logGet(key, value+"", Float.class); return (T) (Object) Float.parseFloat(value);}
-            if(defValue instanceof Double) {Logger.logGet(key, value+"", Double.class); return (T) (Object) Double.parseDouble(value);}
-            if(defValue instanceof Boolean) {Logger.logGet(key, value+"", Boolean.class); return (T) (Object) Boolean.parseBoolean(value);}
-            if(defValue instanceof String) {Logger.logGet(key, value+"", String.class); return (T) value;}
+            T val;
+            if(defValue instanceof Integer) { val = (T) (Object) Integer.parseInt(value); Logger.logGet(key, value+"", Integer.class); return val;}
+            if(defValue instanceof Long) { val = (T) (Object) Long.parseLong(value); Logger.logGet(key, value+"", Long.class); return val;}
+            if(defValue instanceof Float) { val = (T) (Object) Float.parseFloat(value); Logger.logGet(key, value+"", Float.class); return val;}
+            if(defValue instanceof Double) { val = (T) (Object) Double.parseDouble(value); Logger.logGet(key, value+"", Double.class); return val;}
+            if(defValue instanceof Boolean) { val = (T) (Object) Boolean.parseBoolean(value); Logger.logGet(key, value+"", Boolean.class); return val;}
+            if(defValue instanceof String) { val = (T) value; Logger.logGet(key, value+"", String.class); return val;}
 
             Logger.logParseTypeException(key, defValue+"");
             return defValue;
@@ -263,20 +296,6 @@ public final class Prefs {
     public static <T> void put(final String key, final T value) {
         Logger.logPut(key, value+"");
         encryptAndPut(key, value+"");
-    }
-
-
-    /**
-     * Stores a value.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     */
-    public static <T> void putUnencrypted(final String key, final T value) {
-        Logger.logPut(key, value+"");
-        mPrefs.edit().putString(key, value+"").apply();
     }
 
 
@@ -314,17 +333,6 @@ public final class Prefs {
     }
 
     /**
-     * Removes a preference value.
-     *
-     * @param key The key of the data to remove.
-     * @see android.content.SharedPreferences.Editor#remove(String)
-     */
-    public static void removeUnencrypted(final String key) {
-        Logger.logRemove(key);
-        mPrefs.edit().remove(key).apply();
-    }
-
-    /**
      * Checks if a value is stored for the given key.
      *
      * @param key The key of the data to check.
@@ -343,18 +351,6 @@ public final class Prefs {
             Log.e(TAG, e.toString());
             return mPrefs.contains(key);
         }
-    }
-
-    /**
-     * Checks if a value is stored for the given key.
-     *
-     * @param key The key of the data to check.
-     * @return True if the storage contains this key value, False otherwise.
-     * @see android.content.SharedPreferences#contains(String)
-     */
-    public static boolean containsUnencrypted(final String key) {
-        Logger.logContains(key);
-        return mPrefs.contains(key);
     }
 
     /**
@@ -407,11 +403,9 @@ public final class Prefs {
             Logger.logEncrypt(key, encryptedKey, encryptedValue, value.trim());
 
             editor.putString(encryptedKey, encryptedValue).apply();
-            return;
         }
         catch (Exception e){
             Logger.logEncryptException(e, key);
-            return;
         }
     }
 

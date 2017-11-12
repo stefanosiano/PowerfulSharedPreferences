@@ -13,7 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 /** Default class that handles encryption of SharedPreferences values. */
 final class DefaultCrypter implements Crypter {
 
-    private final String CHARSET_UTF8  = "UTF-8";
+    private final String CHARSET_UTF8 = "UTF-8";
     private final char[] HEX_CHARS = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
     private final int LENGTH_KEY = 128;

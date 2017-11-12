@@ -1,13 +1,22 @@
 package com.stefanosiano.powerfulsharedpreferences;
 
+import android.util.Log;
+
 /** Class that will log everything, based on set log level. */
 
 class Logger {
 
-    static void logGet(String key, String value, Class classs){
+    private static int mLogLevel = 0;
+    private static String mTag = "Prefs";
 
+    static void setLevel(int logLevel, String tag){mLogLevel = logLevel; mTag = tag;}
+
+    static void logGet(String key, String value, Class classs){
+        if(mLogLevel < Prefs.Builder.LOG_VALUES)
+            return;
+        Log.i(mTag, "Retrieved " + classs.getSimpleName() + " " + key + " : " + value + ".");
     }
-    static void logInit(){}
+    static void logBuild(){}
     static void logGetAll(){}
     static void logRemove(String key){}
     static void logContains(String key){}
@@ -17,7 +26,7 @@ class Logger {
     static void logDecrypt(String key, String encryptedKey, String encryptedValue, String value){}
     static void logEncrypt(String key, String encryptedKey, String encryptedValue, String value){}
 
-    static void logDestroy(){}
+    static void logTerminate(){}
 
     static void logParseNotFound(String key, String defaultValue){}
 
