@@ -16,9 +16,9 @@ public final class Prefs {
 
     //todo handle change password (getAll, decode values, create new map with decoded keys, create new crypter, clear, putAll)
 
-    //todo support multiple sharedPreferences, through map<name, sharedPref> and map<name, Crypter>,
+    //todo support multiple sharedPreferences, through map<name, sharedPref> and map<name, Boolean>,
     //todo          PowerfulPreference<T> having prefName
-    //todo          addPrefFile(name, mode, Crypter|password, salt) and addPrefFile(name, mode) using mCrypter
+    //todo          addPrefFile(name, mode, useCrypter)
     
     private static final String TAG = Prefs.class.getSimpleName();
     private final static String CHARSET_UTF8  = "UTF-8";
@@ -40,10 +40,13 @@ public final class Prefs {
     }
 
      public static final class Builder {
-
+        /** No logs, anywhere. Should be used in release builds */
         public static final int LOG_DISABLED = 0;
+        /** Logs only errors when getting/putting values. Use in debug build if you don't want to be annoyed by values read */
         public static final int LOG_ERRORS = 1;
+        /** Logs values, keys and eventual errors. Suggested for debug builds */
         public static final int LOG_VALUES = 2;
+        /** Logs everything, from errors (even when encrypting/decrypting), to values and keys, to other methods. Useful to have everything under control */
         public static final int LOG_VERBOSE = 3;
 
         private Crypter crypter;
@@ -63,21 +66,21 @@ public final class Prefs {
          * Passing null will not encrypt data
          * @param crypter Interface that will be used when putting and getting data from SharedPreferences
          */
-        public Builder setDefaultCrypter(Crypter crypter){
+        public Builder setCrypter(Crypter crypter){
             this.crypter = crypter;
             return this;
         }
 
         /**
-         * Use the default crypter that will be used to encrypt and decrypt values inside SharedPreferences.
-         * The default crypter uses AES algorithm and then encode/decode data in base64.
+         * Use the provided crypter that will be used to encrypt and decrypt values inside SharedPreferences.
+         * The provided crypter uses AES algorithm and then encode/decode data in base64.
          *
          * @param pass Must be non-null, and represent the string that will be used to generate the key
          *             of the encryption algorithm
          * @param salt If null, salt will be automatically created using SecureRandom and saved in
          *             the sharedPreferences (after being encrypted using given password)
          */
-        public Builder setDefaultCrypter(String pass, byte[] salt){
+        public Builder setCrypter(String pass, byte[] salt){
             this.password = pass;
             this.salt = salt;
             return this;
@@ -222,11 +225,11 @@ public final class Prefs {
             return parsed;
         }
         catch (NumberFormatException e){
-            Logger.logParseNumberException(e, preference.getKey(), preference.getDefaultValue()+"");
+            Logger.logParseNumberException(e, preference.getKey(), value, preference.getDefaultValue()+"", preference.getPrefClass());
             return preference.getDefaultValue();
         }
         catch (Exception e){
-            Logger.logParseTypeException(preference.getKey(), preference.getDefaultValue()+"");
+            Logger.logParseTypeException(preference.getKey(), value, preference.getDefaultValue()+"", preference.getPrefClass());
             return preference.getDefaultValue();
         }
     }
@@ -238,7 +241,7 @@ public final class Prefs {
      * @param value value to store
      */
     public static <T> void put(final PowerfulPreference<T> preference, T value) {
-        Logger.logPut(preference.getKey(), value+"");
+        Logger.logPut(preference.getKey(), value+"", preference.getPrefClass());
         encryptAndPut(preference.getKey(), value+"");
     }
 
@@ -266,21 +269,27 @@ public final class Prefs {
             Logger.logParseNotFound(key, defValue+"");
             return defValue;
         }
+
+        T val = null;
+
         try{
+            if(defValue instanceof Integer) val = (T) (Object) Integer.parseInt(value);
+            else if(defValue instanceof Long) val = (T) (Object) Long.parseLong(value);
+            else if(defValue instanceof Float) val = (T) (Object) Float.parseFloat(value);
+            else if(defValue instanceof Double) val = (T) (Object) Double.parseDouble(value);
+            else if(defValue instanceof Boolean) val = (T) (Object) Boolean.parseBoolean(value);
+            else if(defValue instanceof String) val = (T) value;
 
-            T val;
-            if(defValue instanceof Integer) { val = (T) (Object) Integer.parseInt(value); Logger.logGet(key, value+"", Integer.class); return val;}
-            if(defValue instanceof Long) { val = (T) (Object) Long.parseLong(value); Logger.logGet(key, value+"", Long.class); return val;}
-            if(defValue instanceof Float) { val = (T) (Object) Float.parseFloat(value); Logger.logGet(key, value+"", Float.class); return val;}
-            if(defValue instanceof Double) { val = (T) (Object) Double.parseDouble(value); Logger.logGet(key, value+"", Double.class); return val;}
-            if(defValue instanceof Boolean) { val = (T) (Object) Boolean.parseBoolean(value); Logger.logGet(key, value+"", Boolean.class); return val;}
-            if(defValue instanceof String) { val = (T) value; Logger.logGet(key, value+"", String.class); return val;}
+            if(val != null) {
+                Logger.logGet(key, value+"", defValue.getClass());
+                return val;
+            }
 
-            Logger.logParseTypeException(key, defValue+"");
+            Logger.logParseTypeException(key, value, defValue+"", defValue.getClass());
             return defValue;
         }
         catch (NumberFormatException e){
-            Logger.logParseNumberException(e, key, defValue+"");
+            Logger.logParseNumberException(e, key, value, defValue+"", defValue.getClass());
             return defValue;
         }
     }
@@ -294,7 +303,7 @@ public final class Prefs {
      * @param value The new value for the data.
      */
     public static <T> void put(final String key, final T value) {
-        Logger.logPut(key, value+"");
+        Logger.logPut(key, value+"", value.getClass());
         encryptAndPut(key, value+"");
     }
 
@@ -340,17 +349,23 @@ public final class Prefs {
      * @see android.content.SharedPreferences#contains(String)
      */
     public static boolean contains(final String key) {
-        Logger.logContains(key);
-        if(mCrypter == null)
-            return mPrefs.contains(key);
+        boolean found;
+        if(mCrypter == null) {
+            found = mPrefs.contains(key);
+            Logger.logContains(key, found);
+            return found;
+        }
 
         try{
-            return mPrefs.contains(mCrypter.encrypt(key));
+            found = mPrefs.contains(mCrypter.encrypt(key));
         }
         catch (Exception e){
             Log.e(TAG, e.toString());
-            return mPrefs.contains(key);
+            found = mPrefs.contains(key);
         }
+
+        Logger.logContains(key, found);
+        return found;
     }
 
     /**
@@ -405,7 +420,7 @@ public final class Prefs {
             editor.putString(encryptedKey, encryptedValue).apply();
         }
         catch (Exception e){
-            Logger.logEncryptException(e, key);
+            Logger.logEncryptException(e, key, value);
         }
     }
 

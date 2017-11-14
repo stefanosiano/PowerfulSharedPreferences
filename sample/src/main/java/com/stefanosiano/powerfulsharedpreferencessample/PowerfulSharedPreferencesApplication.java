@@ -6,7 +6,7 @@ import android.content.Context;
 import com.stefanosiano.powerfulsharedpreferences.Prefs;
 
 /**
- * Created by stefano on 06/11/17.
+ * Application class
  */
 
 public class PowerfulSharedPreferencesApplication extends Application {
@@ -17,7 +17,7 @@ public class PowerfulSharedPreferencesApplication extends Application {
         Prefs.init(this)
                 .setLogLevel(BuildConfig.DEBUG ? Prefs.Builder.LOG_VERBOSE : Prefs.Builder.LOG_DISABLED)
                 .setPrefsName("shared_prefs_file_name", Context.MODE_PRIVATE)
-                .setDefaultCrypter("password", null)
+                .setCrypter("password", null)
                 .build();
     }
 
