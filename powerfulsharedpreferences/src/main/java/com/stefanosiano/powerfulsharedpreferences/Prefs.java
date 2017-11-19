@@ -184,7 +184,7 @@ public final class Prefs {
             for (String key : values.keySet()) {
                 String newKey = mCrypter == null ? key : mCrypter.decrypt(key);
                 String newVal = mCrypter == null ? values.get(key) + "" : mCrypter.decrypt(values.get(key) + "");
-                newValues.put(newCrypter.encrypt(newKey), newCrypter.encrypt(newVal));
+                newValues.put(newCrypter == null ? newKey : newCrypter.encrypt(newKey), newCrypter == null ? newVal : newCrypter.encrypt(newVal));
             }
         }
         catch (Exception e){
