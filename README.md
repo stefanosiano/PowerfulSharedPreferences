@@ -1,11 +1,10 @@
 PowerfulSharedPreferences
 =========================
-Powerful and easy SharedPreferences wrapper, with support for automatic encryption
+Powerful and easy SharedPreferences wrapper, with support for automatic encryption and logs.
   
   
 Planned features (for now):  
-* Support change password
-* Support multiple sharedPreferences files, with optional crypter specific for each file
+* Support multiple sharedPreferences files, with optional encryption for each file
   
   
 Usage
@@ -60,7 +59,7 @@ To put and get values you can then:
 
 ```
     Prefs.put(preference1, value);
-    Prefs.get(preference2);
+    Prefs.get(preference1);
 ```
     
   
@@ -73,6 +72,9 @@ If you just want an easy encryption method, just use Prefs.setDefaultCrypter(pas
   
 Both the keys and the values will be encrypted.  
   
+Through Prefs.changeCrypter() you can change the encryption of the SharedPreferences file, decrypting values with previous crypter/password and encrypting them again with a new one. Passing null will remove encryption on a file.  
+  
+  
   
   
 Gradle
@@ -80,22 +82,18 @@ Gradle
   
 ```
 dependencies {
-    compile 'com.stefanosiano:powerfulsharedpreferences:0.0.2' // Put this line into module's build.gradle
+    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.0' // Put this line into module's build.gradle
 }
 ```
   
   
 Proguard
 --------
-Not done, yet.  
 No steps are required, since configuration is already included.  
   
   
   
 Roadmap
 -------
-Finish logs  
-Add proguard configuration  
-Add support for change password  
 Add support for multiple sharedPreferences  
 
