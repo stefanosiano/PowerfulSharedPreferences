@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,12 +15,10 @@ import java.util.Map;
  */
 public final class Prefs {
 
-    //todo handle change password (getAll, decode values, create new map with decoded keys, create new crypter, clear, putAll)
-
     //todo support multiple sharedPreferences, through map<name, sharedPref> and map<name, Boolean>,
     //todo          PowerfulPreference<T> having prefName
     //todo          addPrefFile(name, mode, useCrypter)
-    
+
     private static final String TAG = Prefs.class.getSimpleName();
     private final static String CHARSET_UTF8  = "UTF-8";
 
@@ -39,7 +38,7 @@ public final class Prefs {
         return new Builder(context.getApplicationContext());
     }
 
-     public static final class Builder {
+    public static final class Builder {
         /** No logs, anywhere. Should be used in release builds */
         public static final int LOG_DISABLED = 0;
         /** Logs only errors when getting/putting values. Use in debug build if you don't want to be annoyed by values read */
@@ -86,22 +85,28 @@ public final class Prefs {
             return this;
         }
 
-         /**
-          * Set the name and the mode of the sharedPreferences file
-          * @param prefsName name of the sharedPreferences file
-          * @param mode mode of the sharedPreferences file
-          */
+        /**
+         * Set the name and the mode of the sharedPreferences file
+         * @param prefsName name of the sharedPreferences file
+         * @param mode mode of the sharedPreferences file
+         */
         public Builder setPrefsName(String prefsName, int mode){
             this.prefsName = prefsName;
             this.mode = mode;
             return this;
         }
 
+
+        /**
+         * Set the log level application-wide
+         * @param logLevel one of Prefs.Builder.LOG_... values
+         */
         public Builder setLogLevel(int logLevel){
             this.logLevel = logLevel;
             return this;
         }
 
+        /** Initializes the library with previous provided configuration */
         public void build(){
             mPrefs = context.getApplicationContext().getSharedPreferences(prefsName, mode);
 
@@ -111,14 +116,17 @@ public final class Prefs {
 
             Logger.setLevel(logLevel, TAG);
             Logger.logBuild();
+
+            //clearing fields for security reason (memory dump)
+            password = "";
+            salt = new byte[0];
         }
 
 
         private Crypter generateDefaultCrypter(SharedPreferences prefs, String pass, byte[] salt){
-            Crypter c = new DefaultCrypter(pass, pass.getBytes());
-
             if(salt == null) {
                 try {
+                    Crypter c = new DefaultCrypter(pass, pass.getBytes());
                     String encryptedSalt = prefs.getString(c.encrypt("key") + "!", "");
 
                     if(TextUtils.isEmpty(encryptedSalt)) {
@@ -147,11 +155,61 @@ public final class Prefs {
     }
 
     /**
+     * Changes the values of the preference, encrypting them with a new password and salt
+     * All values in the preference will be decrypted using the old password and encrypted using the new one
+     *
+     * Use the provided crypter that will be used to encrypt and decrypt values inside SharedPreferences.
+     * The provided crypter uses AES algorithm and then encode/decode data in base64.
+     *
+     * @param pass Must be non-null, and represent the string that will be used to generate the key
+     *             of the encryption algorithm
+     * @param salt If null, salt will be automatically created using SecureRandom and saved in
+     *             the sharedPreferences (after being encrypted using given password)
+     */
+    public static void changeCrypter(String pass, byte[] salt){
+        Builder builder = new Builder(null);
+        Crypter newCrypter = builder.generateDefaultCrypter(mPrefs, pass, salt);
+        changeCrypter(newCrypter);
+    }
+
+    /**
+     * Changes the values of the preference, encrypting them with a Crypter
+     * All values in the preference will be decrypted using the old Crypter and encrypted using the new one
+     *
+     * @param newCrypter Interface that will be used when putting and getting data from SharedPreferences
+     */
+    public static void changeCrypter(Crypter newCrypter){
+        Map<String, ?> values = getAll();
+        Map<String, String> newValues = new HashMap<>(values.size());
+        try {
+            for (String key : values.keySet()) {
+                String newKey = mCrypter == null ? key : mCrypter.decrypt(key);
+                String newVal = mCrypter == null ? values.get(key) + "" : mCrypter.decrypt(values.get(key) + "");
+                newValues.put(newCrypter.encrypt(newKey), newCrypter.encrypt(newVal));
+            }
+        }
+        catch (Exception e){
+            Logger.logErrorChangeCrypter(e);
+            return;
+        }
+
+        values.clear();
+        mPrefs.edit().clear().commit();
+
+        for (String key : values.keySet())
+            mPrefs.edit().putString(key, newValues.get(key)).apply();
+
+        mCrypter = newCrypter;
+        Logger.logChangeCrypter();
+    }
+
+    /**
      * @param key Key of the preference
      * @param value default value to return in case of errors
      * @return An instance of PowerfulPreference for Integers
      */
     public static PowerfulPreference<Integer> newPref(String key, Integer value){
+        Logger.logNewPref(key, value+"", Integer.class);
         return new IPreference(key, value);
     }
 
@@ -162,6 +220,7 @@ public final class Prefs {
      * @return An instance of PowerfulPreference for Longs
      */
     public static PowerfulPreference<Long> newPref(String key, Long value){
+        Logger.logNewPref(key, value+"", Long.class);
         return new LPreference(key, value);
     }
 
@@ -172,6 +231,7 @@ public final class Prefs {
      * @return An instance of PowerfulPreference for Floats
      */
     public static PowerfulPreference<Float> newPref(String key, Float value){
+        Logger.logNewPref(key, value+"", Float.class);
         return new FPreference(key, value);
     }
 
@@ -181,6 +241,7 @@ public final class Prefs {
      * @return An instance of PowerfulPreference for Doubles
      */
     public static PowerfulPreference<Double> newPref(String key, Double value){
+        Logger.logNewPref(key, value+"", Double.class);
         return new DPreference(key, value);
     }
 
@@ -190,6 +251,7 @@ public final class Prefs {
      * @return An instance of PowerfulPreference for Booleans
      */
     public static PowerfulPreference<Boolean> newPref(String key, Boolean value){
+        Logger.logNewPref(key, value+"", Boolean.class);
         return new BPreference(key, value);
     }
 
@@ -199,6 +261,7 @@ public final class Prefs {
      * @return An instance of PowerfulPreference for Strings
      */
     public static PowerfulPreference<String> newPref(String key, String value){
+        Logger.logNewPref(key, value, String.class);
         return new SPreference(key, value);
     }
 

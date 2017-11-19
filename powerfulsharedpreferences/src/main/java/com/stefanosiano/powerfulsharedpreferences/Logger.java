@@ -17,10 +17,28 @@ class Logger {
         //todo Log.v(mTag, "Retrieved " + classs.getSimpleName() + " " + key + " : " + value + ".");
     }
 
+    static void logErrorChangeCrypter(Exception e){
+        if(mLogLevel < Prefs.Builder.LOG_ERRORS)
+            return;
+        Log.e(mTag, "Trying to change crypter, but got an error: " + e.getLocalizedMessage() + "\nNo values were changed!");
+    }
+
+    static void logChangeCrypter(){
+        if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
+            return;
+        Log.d(mTag, "Crypter was changed, and all values have been encrypted");
+    }
+
     static void logTerminate(){
         if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
             return;
         Log.d(mTag, "Terminating and releasing all objects in memory");
+    }
+
+    static void logNewPref(String key, String defaultValue, Class classs){
+        if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
+            return;
+        Log.d(mTag, "Created preference " + key + " : " + defaultValue + " (" + classs.getSimpleName() + ")");
     }
 
     static void logGetAll(){
