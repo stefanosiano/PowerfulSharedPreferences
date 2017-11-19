@@ -7,9 +7,9 @@ import android.util.Log;
 class Logger {
 
     private static int mLogLevel = 0;
-    private static String mTag = "Prefs";
+    private static final String mTag = "Prefs";
 
-    static void setLevel(int logLevel, String tag){mLogLevel = logLevel; mTag = tag;}
+    static void setLevel(int logLevel){mLogLevel = logLevel;}
 
     static void logBuild(){
         if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
@@ -62,13 +62,13 @@ class Logger {
     static void logGet(String key, String value, Class classs){
         if(mLogLevel < Prefs.Builder.LOG_VALUES)
             return;
-        Log.d(mTag, "Retrieved " + classs.getSimpleName() + " " + key + " : " + value);
+        Log.d(mTag, "Retrieved " + key + " : " + value + " (" + classs.getSimpleName() + ")");
     }
 
     static void logPut(String key, String value, Class classs){
         if(mLogLevel < Prefs.Builder.LOG_VALUES)
             return;
-        Log.d(mTag, "Put " + classs.getSimpleName() + " " + value + " into " + key);
+        Log.d(mTag, "Put " + key + " : " + value + " (" + classs.getSimpleName() + ")");
     }
 
     static void logContains(String key, boolean found){
@@ -110,10 +110,7 @@ class Logger {
     static void logParseNumberException(NumberFormatException e, String key, String value, String defaultValue, Class classs){
         if(mLogLevel < Prefs.Builder.LOG_ERRORS)
             return;
-        Log.e(mTag, "Error trying to parse " + key + " : " + value + " as " + classs.getSimpleName() + ". Returning default value: " + defaultValue);
-        if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
-            return;
-        e.printStackTrace();
+        Log.e(mTag, "Error trying to parse " + key + " : " + value + " as " + classs.getSimpleName() + ". " + e.getLocalizedMessage() + "\nReturning default value: " + defaultValue);
     }
 
     static void logParseTypeException(String key, String value, String defaultValue, Class classs){

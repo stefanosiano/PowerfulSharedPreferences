@@ -27,11 +27,15 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName libVersion
-//        consumerProguardFiles 'psp-proguard-rules.txt'
+        consumerProguardFiles 'psp-proguard-rules.txt'
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

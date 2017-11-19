@@ -19,7 +19,6 @@ public final class Prefs {
     //todo          PowerfulPreference<T> having prefName
     //todo          addPrefFile(name, mode, useCrypter)
 
-    private static final String TAG = Prefs.class.getSimpleName();
     private final static String CHARSET_UTF8  = "UTF-8";
 
     private static SharedPreferences mPrefs;
@@ -114,7 +113,7 @@ public final class Prefs {
             if(!TextUtils.isEmpty(password)) mCrypter = generateDefaultCrypter(mPrefs, password, salt);
             else mCrypter = this.crypter;
 
-            Logger.setLevel(logLevel, TAG);
+            Logger.setLevel(logLevel);
             Logger.logBuild();
 
             //clearing fields for security reason (memory dump)
@@ -398,7 +397,6 @@ public final class Prefs {
             editor.remove(mCrypter.encrypt(key));
         }
         catch (Exception e){
-            Log.e(TAG, e.toString());
             editor.remove(key);
         }
         editor.apply();
@@ -423,7 +421,6 @@ public final class Prefs {
             found = mPrefs.contains(mCrypter.encrypt(key));
         }
         catch (Exception e){
-            Log.e(TAG, e.toString());
             found = mPrefs.contains(key);
         }
 
@@ -455,6 +452,8 @@ public final class Prefs {
         try{
             String encryptedKey = mCrypter.encrypt(key);
             String encryptedValue = mPrefs.getString(encryptedKey, "");
+            if(TextUtils.isEmpty(encryptedValue))
+                return "";
             String value = mCrypter.decrypt(encryptedValue);
             Logger.logDecrypt(key, encryptedKey, encryptedValue, value);
             return value;
