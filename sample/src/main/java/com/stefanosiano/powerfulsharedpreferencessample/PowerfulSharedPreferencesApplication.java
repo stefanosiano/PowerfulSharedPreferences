@@ -17,6 +17,8 @@ public class PowerfulSharedPreferencesApplication extends Application {
         Prefs.init(this)
                 .setLogLevel(BuildConfig.DEBUG ? Prefs.Builder.LOG_VERBOSE : Prefs.Builder.LOG_DISABLED)
                 .setDefaultPrefs("shared_prefs_file_name", Context.MODE_PRIVATE)
+                .addPrefs("unencrypted_shared_prefs_file_name2", Context.MODE_PRIVATE, false)
+                .addPrefs("encrypted_shared_prefs_file_name2", Context.MODE_PRIVATE, true)
                 .setCrypter("password", null)
                 .build();
     }

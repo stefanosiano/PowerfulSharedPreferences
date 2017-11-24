@@ -1,10 +1,10 @@
 PowerfulSharedPreferences
 =========================
-Powerful and easy SharedPreferences wrapper, with support for automatic encryption and logs.
+Powerful and easy SharedPreferences wrapper, with support for automatic encryption, logs and multiple SharedPreferences files.
   
   
 Planned features (for now):  
-* Support multiple sharedPreferences files, with optional encryption for each file
+* Support for reactive programming
   
   
 Usage
@@ -20,8 +20,10 @@ public class MyApplication extends Application {
         super.onCreate();
         Prefs.init(this)
                 .setLogLevel(BuildConfig.DEBUG ? Prefs.Builder.LOG_VERBOSE : Prefs.Builder.LOG_DISABLED)
-                .setPrefsName("file_name", Context.MODE_PRIVATE)
-                .setDefaultCrypter("password", null)
+                .setDefaultPrefs("file_name", Context.MODE_PRIVATE)
+                .addPrefs("unencrypted_shared_prefs_file_name2", Context.MODE_PRIVATE, false)
+                .addPrefs("encrypted_shared_prefs_file_name2", Context.MODE_PRIVATE, true)
+                .setCrypter("password", null)
                 .build();
     }
 
@@ -37,10 +39,13 @@ After that, you can simply put and get data through:
 
 ```
     Prefs.put("key", value);
+    Prefs.put("key", value, "prefFileName");
     Prefs.get("key", defaultValue);
+    Prefs.get("key", defaultValue, "prefFileName");
 ```
   
-Type of data will be inferred from the given value type  
+If no preferences file name is provided, the default file (set during initialization) will be used.  
+Type of data will be inferred from the given value type.  
   
   
   
@@ -51,7 +56,7 @@ Instead of having a class with multiple declared constants, representing the key
 
 ```
     public static final PowerfulPreference<Integer> preference1 = Prefs.newPref("key", 0);
-    public static final PowerfulPreference<Double> preference2 = Prefs.newPref("key2", 0D);
+    public static final PowerfulPreference<Double> preference2 = Prefs.newPref("key2", 0D, "prefFileName");
 ```
   
 This way you declare default values only once, along with their classes, to have type safety, too. For example, if you try to put a String as a value for a preference declared as Integer, compiler will get angry!  
@@ -95,5 +100,5 @@ No steps are required, since configuration is already included.
   
 Roadmap
 -------
-Add support for multiple sharedPreferences  
+Add support for reactive programming
 
