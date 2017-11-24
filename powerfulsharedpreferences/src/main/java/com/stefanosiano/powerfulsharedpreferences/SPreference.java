@@ -4,14 +4,16 @@ package com.stefanosiano.powerfulsharedpreferences;
  * PowerfulPreference wrapper for String
  */
 
-class SPreference extends PowerfulPreference<String> {
+class SPreference implements PowerfulPreference<String> {
 
     private String key;
     private String defaultValue;
+    private String prefName;
 
-    SPreference(String key, String defaultValue) {
+    SPreference(String key, String defaultValue, String prefName) {
         this.key = key;
         this.defaultValue = defaultValue;
+        this.prefName = prefName;
     }
 
     @Override
@@ -32,5 +34,10 @@ class SPreference extends PowerfulPreference<String> {
     @Override
     public Class getPrefClass() {
         return String.class;
+    }
+
+    @Override
+    public String getPreferencesFileName() {
+        return prefName;
     }
 }

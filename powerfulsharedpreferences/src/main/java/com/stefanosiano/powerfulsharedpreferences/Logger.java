@@ -14,6 +14,7 @@ class Logger {
     static void logBuild(){
         if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
             return;
+        Log.v(mTag, "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
         //todo Log.v(mTag, "Retrieved " + classs.getSimpleName() + " " + key + " : " + value + ".");
     }
 

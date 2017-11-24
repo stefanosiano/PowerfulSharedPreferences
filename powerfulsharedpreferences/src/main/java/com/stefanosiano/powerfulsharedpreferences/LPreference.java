@@ -4,14 +4,16 @@ package com.stefanosiano.powerfulsharedpreferences;
  * PowerfulPreference wrapper for Long
  */
 
-class LPreference extends PowerfulPreference<Long> {
+class LPreference implements PowerfulPreference<Long> {
 
     private String key;
     private Long defaultValue;
+    private String prefName;
 
-    LPreference(String key, Long defaultValue) {
+    LPreference(String key, Long defaultValue, String prefName) {
         this.key = key;
         this.defaultValue = defaultValue;
+        this.prefName = prefName;
     }
 
     @Override
@@ -32,5 +34,10 @@ class LPreference extends PowerfulPreference<Long> {
     @Override
     public Class getPrefClass() {
         return Long.class;
+    }
+
+    @Override
+    public String getPreferencesFileName() {
+        return prefName;
     }
 }

@@ -4,14 +4,16 @@ package com.stefanosiano.powerfulsharedpreferences;
  * PowerfulPreference wrapper for Boolean
  */
 
-class BPreference extends PowerfulPreference<Boolean> {
+class BPreference implements PowerfulPreference<Boolean> {
 
     private String key;
     private Boolean defaultValue;
+    private String prefName;
 
-    BPreference(String key, Boolean defaultValue) {
+    BPreference(String key, Boolean defaultValue, String prefName) {
         this.key = key;
         this.defaultValue = defaultValue;
+        this.prefName = prefName;
     }
 
     @Override
@@ -32,5 +34,10 @@ class BPreference extends PowerfulPreference<Boolean> {
     @Override
     public Class getPrefClass() {
         return Boolean.class;
+    }
+
+    @Override
+    public String getPreferencesFileName() {
+        return prefName;
     }
 }

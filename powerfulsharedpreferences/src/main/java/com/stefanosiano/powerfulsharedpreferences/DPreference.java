@@ -4,14 +4,16 @@ package com.stefanosiano.powerfulsharedpreferences;
  * PowerfulPreference wrapper for Double
  */
 
-class DPreference extends PowerfulPreference<Double> {
+class DPreference implements PowerfulPreference<Double> {
 
     private String key;
     private Double defaultValue;
+    private String prefName;
 
-    DPreference(String key, Double defaultValue) {
+    DPreference(String key, Double defaultValue, String prefName) {
         this.key = key;
         this.defaultValue = defaultValue;
+        this.prefName = prefName;
     }
 
     @Override
@@ -32,5 +34,10 @@ class DPreference extends PowerfulPreference<Double> {
     @Override
     public Class getPrefClass() {
         return Double.class;
+    }
+
+    @Override
+    public String getPreferencesFileName() {
+        return prefName;
     }
 }

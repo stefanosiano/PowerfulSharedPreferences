@@ -4,25 +4,28 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
-import android.util.Log;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * SharedPreferences wrapper class, with added features like encryption, logging and type safety.
  */
 public final class Prefs {
 
-    //todo support multiple sharedPreferences, through map<name, sharedPref> and map<name, Boolean>,
-    //todo          PowerfulPreference<T> having prefName
-    //todo          addPrefFile(name, mode, useCrypter)
-
     private final static String CHARSET_UTF8  = "UTF-8";
 
-    private static SharedPreferences mPrefs;
+    private static SharedPreferences mDefaultPrefs;
     private static Crypter mCrypter;
+    private static HashMap<String, PrefContainer> prefMap = new HashMap<>();
+
+
 
     /** Private constructor, to be sure to have a singleton */
     private Prefs(){}
@@ -49,15 +52,15 @@ public final class Prefs {
 
         private Crypter crypter;
         private Context context;
-        private String prefsName, password;
+        private String defaultPrefsName, password;
         private byte[] salt;
-        private int mode;
+        private int defaultPrefsMode;
         private int logLevel = LOG_DISABLED;
 
         Builder(Context context){
-            this.context = context;
-            this.mode = Context.MODE_PRIVATE;
-            this.prefsName = context.getPackageName();
+            this.context = context.getApplicationContext();
+            this.defaultPrefsMode = Context.MODE_PRIVATE;
+            this.defaultPrefsName = context.getApplicationContext().getPackageName();
         }
         /**
          * Set the custom crypter that will be used to encrypt and decrypt values inside SharedPreferences.
@@ -89,9 +92,27 @@ public final class Prefs {
          * @param prefsName name of the sharedPreferences file
          * @param mode mode of the sharedPreferences file
          */
-        public Builder setPrefsName(String prefsName, int mode){
-            this.prefsName = prefsName;
-            this.mode = mode;
+        public Builder setDefaultPrefs(String prefsName, int mode){
+            this.defaultPrefsName = prefsName;
+            this.defaultPrefsMode = mode;
+            return this;
+        }
+
+        /**
+         * Add a sharedPreferences file other then the default one.
+         * To set the default preferences file, call {@link #setDefaultPrefs(String, int)}.
+         * If not specified, default preference file will be named as the application package name.
+         *
+         * Note: Adding multiple times the same name will override previous calls
+         *       Also, if the same name of the defaultPreferences is provided, this call will be ignored
+         *
+         * @param prefsName name of the sharedPreferences file
+         * @param mode mode of the sharedPreferences file
+         * @param useCrypter If true, it will use the same crypter of defaultPreferences, if specified
+         *                   If false, this file will not be encrypted
+         */
+        public Builder addPrefs(String prefsName, int mode, boolean useCrypter){
+            prefMap.put(prefsName, new PrefContainer(useCrypter, prefsName, mode));
             return this;
         }
 
@@ -107,11 +128,15 @@ public final class Prefs {
 
         /** Initializes the library with previous provided configuration */
         public void build(){
-            mPrefs = context.getApplicationContext().getSharedPreferences(prefsName, mode);
+            mDefaultPrefs = context.getApplicationContext().getSharedPreferences(defaultPrefsName, defaultPrefsMode);
 
             //If the user set a password, I generate the default crypter and use it
-            if(!TextUtils.isEmpty(password)) mCrypter = generateDefaultCrypter(mPrefs, password, salt);
+            if(!TextUtils.isEmpty(password)) mCrypter = generateDefaultCrypter(mDefaultPrefs, password, salt);
             else mCrypter = this.crypter;
+
+            prefMap.remove(defaultPrefsName);
+            for(PrefContainer prefContainer : prefMap.values())
+                prefContainer.build(context);
 
             Logger.setLevel(logLevel);
             Logger.logBuild();
@@ -149,13 +174,16 @@ public final class Prefs {
     /** Releases data hold by this class. Call this in your {@link Application#onTerminate()} method */
     public static void terminate(){
         Logger.logTerminate();
-        mPrefs = null;
+        mDefaultPrefs = null;
         mCrypter = null;
+        prefMap.clear();
+        prefMap = null;
     }
 
     /**
-     * Changes the values of the preference, encrypting them with a new password and salt
-     * All values in the preference will be decrypted using the old password and encrypted using the new one
+     * Changes the values of all the preferences files, encrypting them with a new password and salt
+     * Only preferences already using a crypter will be changed.
+     * All values are changed in a transaction: if an error occurs, nothing will change, otherwise all values will change.
      *
      * Use the provided crypter that will be used to encrypt and decrypt values inside SharedPreferences.
      * The provided crypter uses AES algorithm and then encode/decode data in base64.
@@ -167,102 +195,102 @@ public final class Prefs {
      */
     public static void changeCrypter(String pass, byte[] salt){
         Builder builder = new Builder(null);
-        Crypter newCrypter = builder.generateDefaultCrypter(mPrefs, pass, salt);
+        Crypter newCrypter = builder.generateDefaultCrypter(mDefaultPrefs, pass, salt);
         changeCrypter(newCrypter);
     }
 
     /**
-     * Changes the values of the preference, encrypting them with a Crypter
-     * All values in the preference will be decrypted using the old Crypter and encrypted using the new one
+     * Changes the values of all the preferences files, encrypting them with a Crypter
+     * Only preferences already using a crypter will be changed.
+     * All values are changed in a transaction: if an error occurs, nothing will change, otherwise all values will change.
      *
      * @param newCrypter Interface that will be used when putting and getting data from SharedPreferences
      */
     public static void changeCrypter(Crypter newCrypter){
-        Map<String, ?> values = getAll();
-        Map<String, String> newValues = new HashMap<>(values.size());
-        try {
-            for (String key : values.keySet()) {
-                String newKey = mCrypter == null ? key : mCrypter.decrypt(key);
-                String newVal = mCrypter == null ? values.get(key) + "" : mCrypter.decrypt(values.get(key) + "");
-                newValues.put(newCrypter == null ? newKey : newCrypter.encrypt(newKey), newCrypter == null ? newVal : newCrypter.encrypt(newVal));
+        HashMap<String, Map<String, String>> maps = new HashMap<>(prefMap.size());
+
+        for(PrefContainer prefContainer : prefMap.values()) {
+            //I update the crypter only for preferences already using a crypter
+            if(!prefContainer.useCrypter)
+                continue;
+
+            Map<String, ?> values = prefContainer.sharedPreferences.getAll();
+            Map<String, String> newValues = new HashMap<>(values.size());
+            try {
+                for (String key : values.keySet()) {
+                    String newKey = mCrypter == null ? key : mCrypter.decrypt(key);
+                    String newVal = mCrypter == null ? values.get(key) + "" : mCrypter.decrypt(values.get(key) + "");
+                    newValues.put(newCrypter == null ? newKey : newCrypter.encrypt(newKey), newCrypter == null ? newVal : newCrypter.encrypt(newVal));
+                }
+            } catch (Exception e) {
+                Logger.logErrorChangeCrypter(e);
+                return;
             }
-        }
-        catch (Exception e){
-            Logger.logErrorChangeCrypter(e);
-            return;
+            maps.put(prefContainer.name, newValues);
+            values.clear();
         }
 
-        values.clear();
-        mPrefs.edit().clear().commit();
+        for(PrefContainer prefContainer : prefMap.values()) {
+            //I update the crypter only for preferences already using a crypter
+            if(!prefContainer.useCrypter)
+                continue;
 
-        for (String key : values.keySet())
-            mPrefs.edit().putString(key, newValues.get(key)).apply();
+            prefContainer.sharedPreferences.edit().clear().commit();
+
+            for (String key : maps.get(prefContainer.name).keySet())
+                prefContainer.sharedPreferences.edit().putString(key, maps.get(prefContainer.name).get(key)).apply();
+        }
 
         mCrypter = newCrypter;
         Logger.logChangeCrypter();
     }
 
-    /**
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference for Integers
-     */
-    public static PowerfulPreference<Integer> newPref(String key, Integer value){
-        Logger.logNewPref(key, value+"", Integer.class);
-        return new IPreference(key, value);
-    }
-
 
     /**
+     * Convenience method to easily create PowerfulPreferences of default preferences file.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * Note: The return type is inferred from the value type
+     *
      * @param key Key of the preference
      * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference for Longs
+     * @return An instance of PowerfulPreference
      */
-    public static PowerfulPreference<Long> newPref(String key, Long value){
-        Logger.logNewPref(key, value+"", Long.class);
-        return new LPreference(key, value);
-    }
-
-
-    /**
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference for Floats
-     */
-    public static PowerfulPreference<Float> newPref(String key, Float value){
-        Logger.logNewPref(key, value+"", Float.class);
-        return new FPreference(key, value);
+    public static <T> PowerfulPreference<T> newPref(String key, T value){
+        return newPref(key, value, null);
     }
 
     /**
+     * Convenience method to easily create PowerfulPreferences.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * Note: The return type is inferred from the value type
+     *
      * @param key Key of the preference
      * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference for Doubles
+     * @param prefName SharedPreferences file name (passing null will use default preferences file)
+     * @return An instance of PowerfulPreference
      */
-    public static PowerfulPreference<Double> newPref(String key, Double value){
-        Logger.logNewPref(key, value+"", Double.class);
-        return new DPreference(key, value);
+    public static <T> PowerfulPreference<T> newPref(String key, T value, String prefName){
+
+        PowerfulPreference<T> preference = null;
+        if(value instanceof Integer) preference = (PowerfulPreference<T>) new IPreference(key, (Integer) value, prefName);
+        else if(value instanceof Float) preference = (PowerfulPreference<T>) new FPreference(key, (Float) value, prefName);
+        else if(value instanceof Double) preference = (PowerfulPreference<T>) new DPreference(key, (Double) value, prefName);
+        else if(value instanceof Boolean) preference = (PowerfulPreference<T>) new BPreference(key, (Boolean) value, prefName);
+        else if(value instanceof String) preference = (PowerfulPreference<T>) new SPreference(key, (String) value, prefName);
+        else if(value instanceof Long) preference = (PowerfulPreference<T>) new LPreference(key, (Long) value, prefName);
+
+        if(preference != null) {
+            Logger.logNewPref(key, value+"", preference.getPrefClass());
+            return preference;
+        }
+
+        throw new RuntimeException("Cannot understand preference type. Please, provide a valid class");
     }
 
-    /**
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference for Booleans
-     */
-    public static PowerfulPreference<Boolean> newPref(String key, Boolean value){
-        Logger.logNewPref(key, value+"", Boolean.class);
-        return new BPreference(key, value);
-    }
-
-    /**
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference for Strings
-     */
-    public static PowerfulPreference<String> newPref(String key, String value){
-        Logger.logNewPref(key, value, String.class);
-        return new SPreference(key, value);
-    }
 
 
     /**
@@ -272,11 +300,8 @@ public final class Prefs {
      * @return The preference value if it exists and is valid, otherwise defValue.
      */
     public static <T> T get(final PowerfulPreference<T> preference) {
-        return parse(preference, getAndDecrypt(preference.getKey()));
-    }
+        String value = getAndDecrypt(preference.getKey(), preference.getPreferencesFileName());
 
-    /** Parses a stored preference. */
-    private static <T> T parse(final PowerfulPreference<T> preference, String value) {
         if(TextUtils.isEmpty(value)){
             Logger.logParseNotFound(preference.getKey(), preference.getDefaultValue()+"");
             return preference.getDefaultValue();
@@ -304,12 +329,12 @@ public final class Prefs {
      */
     public static <T> void put(final PowerfulPreference<T> preference, T value) {
         Logger.logPut(preference.getKey(), value+"", preference.getPrefClass());
-        encryptAndPut(preference.getKey(), value+"");
+        encryptAndPut(preference.getKey(), value+"", preference.getPreferencesFileName());
     }
 
 
     /**
-     * Retrieves a stored value.
+     * Retrieves a stored value from default preferences file.
      * This works only with primitive types (and their boxed types)
      * like int, Integer, boolean, Boolean...
      *
@@ -320,13 +345,24 @@ public final class Prefs {
      * @return The preference value if it exists and is valid, otherwise defValue.
      */
     public static <T> T get(final String key, final T defValue) {
-        String value = getAndDecrypt(key);
-        return parse(key, defValue, value);
+        return get(key, defValue, null);
     }
 
+    /**
+     * Retrieves a stored value.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * Note: The return type is inferred from the default value type!
+     *
+     * @param key      The key of the data to retrieve.
+     * @param defValue Value to return if this preference does not exist or value is invalid.
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     * @return The preference value if it exists and is valid, otherwise defValue.
+     */
+    public static <T> T get(final String key, final T defValue, String preferencesFileName) {
+        String value = getAndDecrypt(key, preferencesFileName);
 
-    /** Parses the retrieved value. */
-    private static <T> T parse(final String key, final T defValue, String value) {
         if(TextUtils.isEmpty(value)){
             Logger.logParseNotFound(key, defValue+"");
             return defValue;
@@ -357,7 +393,7 @@ public final class Prefs {
     }
 
     /**
-     * Stores a value.
+     * Stores a value into default preferences file.
      * This works only with primitive types (and their boxed types)
      * like int, Integer, boolean, Boolean...
      *
@@ -365,36 +401,67 @@ public final class Prefs {
      * @param value The new value for the data.
      */
     public static <T> void put(final String key, final T value) {
+        put(key, value, null);
+    }
+
+    /**
+     * Stores a value.
+     * This works only with primitive types (and their boxed types)
+     * like int, Integer, boolean, Boolean...
+     *
+     * @param key   The key of the data to modify.
+     * @param value The new value for the data.
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     */
+    public static <T> void put(final String key, final T value, String preferencesFileName) {
         Logger.logPut(key, value+"", value.getClass());
-        encryptAndPut(key, value+"");
+        encryptAndPut(key, value+"", preferencesFileName);
     }
 
 
     /**
-     * @return Returns a map containing a list of pairs key/value representing the preferences.
+     * @return Returns a map containing a list of pairs key/value representing the preferences of default preferences file.
      * @see android.content.SharedPreferences#getAll()
      */
     public static Map<String, ?> getAll() {
+        return getAll(null);
+    }
+    /**
+     * @return Returns a map containing a list of pairs key/value representing the preferences.
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     * @see android.content.SharedPreferences#getAll()
+     */
+    public static Map<String, ?> getAll(String preferencesFileName) {
         Logger.logGetAll();
-        return mPrefs.getAll();
+        return findPref(preferencesFileName).getAll();
     }
 
-
     /**
-     * Removes a preference value.
+     * Removes a preference value from default preferences file.
      *
      * @param key The key of the data to remove.
      * @see android.content.SharedPreferences.Editor#remove(String)
      */
     public static void remove(final String key) {
+        remove(key, null);
+    }
+
+    /**
+     * Removes a preference value.
+     *
+     * @param key The key of the data to remove.
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     * @see android.content.SharedPreferences.Editor#remove(String)
+     */
+    public static void remove(final String key, String preferencesFileName) {
         Logger.logRemove(key);
-        SharedPreferences.Editor editor = mPrefs.edit();
-        if(mCrypter == null) {
+        SharedPreferences.Editor editor = findPref(preferencesFileName).edit();
+        if(findCrypter(preferencesFileName) == null) {
             editor.remove(key);
         }
 
         try{
-            editor.remove(mCrypter.encrypt(key));
+            editor.remove(findCrypter(preferencesFileName).encrypt(key));
         }
         catch (Exception e){
             editor.remove(key);
@@ -402,26 +469,40 @@ public final class Prefs {
         editor.apply();
     }
 
+
     /**
-     * Checks if a value is stored for the given key.
+     * Checks if a value is stored for the given key into default preferences file.
      *
      * @param key The key of the data to check.
      * @return True if the storage contains this key value, False otherwise.
      * @see android.content.SharedPreferences#contains(String)
      */
     public static boolean contains(final String key) {
+        return contains(key, null);
+    }
+
+    /**
+     * Checks if a value is stored for the given key.
+     *
+     * @param key The key of the data to check.
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     * @return True if the storage contains this key value, False otherwise.
+     * @see android.content.SharedPreferences#contains(String)
+     */
+    public static boolean contains(final String key, String preferencesFileName) {
+        SharedPreferences sharedPreferences = findPref(preferencesFileName);
         boolean found;
-        if(mCrypter == null) {
-            found = mPrefs.contains(key);
+        if(findCrypter(preferencesFileName) == null) {
+            found = sharedPreferences.contains(key);
             Logger.logContains(key, found);
             return found;
         }
 
         try{
-            found = mPrefs.contains(mCrypter.encrypt(key));
+            found = sharedPreferences.contains(findCrypter(preferencesFileName).encrypt(key));
         }
         catch (Exception e){
-            found = mPrefs.contains(key);
+            found = sharedPreferences.contains(key);
         }
 
         Logger.logContains(key, found);
@@ -429,53 +510,68 @@ public final class Prefs {
     }
 
     /**
-     * Removed all the stored keys and values.
+     * Removed all the stored keys and values from default preferences file.
      *
      * @return the {@link SharedPreferences.Editor} for chaining. The changes have already been committed/applied
      * through the execution of this method.
      * @see android.content.SharedPreferences.Editor#clear()
      */
     public static SharedPreferences.Editor clear() {
+        return clear(null);
+    }
+
+    /**
+     * Removed all the stored keys and values.
+     *
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     * @return the {@link SharedPreferences.Editor} for chaining. The changes have already been committed/applied
+     * through the execution of this method.
+     * @see android.content.SharedPreferences.Editor#clear()
+     */
+    public static SharedPreferences.Editor clear(String preferencesFileName) {
         Logger.logClear();
-        final SharedPreferences.Editor editor = mPrefs.edit().clear();
+        final SharedPreferences.Editor editor = findPref(preferencesFileName).edit().clear();
         editor.apply();
         return editor;
     }
 
 
-
     /** Decrypts the value corresponding to a key */
-    private static String getAndDecrypt(String key) {
-        if(mCrypter == null)
-            mPrefs.getString(key, "");
+    private static String getAndDecrypt(String key, String preferencesFileName) {
+        SharedPreferences sharedPreferences = findPref(preferencesFileName);
+        if(findCrypter(preferencesFileName) == null)
+            sharedPreferences.getString(key, "");
 
         try{
-            String encryptedKey = mCrypter.encrypt(key);
-            String encryptedValue = mPrefs.getString(encryptedKey, "");
+            String encryptedKey = findCrypter(preferencesFileName).encrypt(key);
+            String encryptedValue = sharedPreferences.getString(encryptedKey, "");
             if(TextUtils.isEmpty(encryptedValue))
                 return "";
-            String value = mCrypter.decrypt(encryptedValue);
+            String value = findCrypter(preferencesFileName).decrypt(encryptedValue);
             Logger.logDecrypt(key, encryptedKey, encryptedValue, value);
             return value;
         }
         catch (Exception e){
             Logger.logDecryptException(e, key);
-            return mPrefs.getString(key, "");
+            return sharedPreferences.getString(key, "");
         }
     }
 
-    /** Encrypts a value */
-    private static void encryptAndPut(String key, String value) {
-        final SharedPreferences.Editor editor = mPrefs.edit();
 
-        if(mCrypter == null) {
+    /** Encrypts a value */
+    private static void encryptAndPut(String key, String value, String preferencesFileName) {
+        SharedPreferences sharedPreferences = findPref(preferencesFileName);
+        final SharedPreferences.Editor editor = sharedPreferences.edit();
+        Crypter crypter = findCrypter(preferencesFileName);
+
+        if(crypter == null) {
             editor.putString(key, value.trim()).apply();
             return;
         }
 
         try{
-            String encryptedKey = mCrypter.encrypt(key);
-            String encryptedValue = mCrypter.encrypt(value.trim());
+            String encryptedKey = crypter.encrypt(key);
+            String encryptedValue = crypter.encrypt(value.trim());
 
             Logger.logEncrypt(key, encryptedKey, encryptedValue, value.trim());
 
@@ -486,4 +582,15 @@ public final class Prefs {
         }
     }
 
+    private static SharedPreferences findPref(String name){
+        if(TextUtils.isEmpty(name))
+            return mDefaultPrefs;
+        return prefMap.get(name) == null || prefMap.get(name).sharedPreferences == null ? mDefaultPrefs : prefMap.get(name).sharedPreferences;
+    }
+
+    private static Crypter findCrypter(String name){
+        if(TextUtils.isEmpty(name))
+            return mCrypter;
+        return prefMap.get(name) == null || !prefMap.get(name).useCrypter ? null : mCrypter;
+    }
 }

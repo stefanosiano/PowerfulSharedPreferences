@@ -20,6 +20,8 @@ public class MainActivity extends Activity {
         Prefs.put("a", 142);
         Prefs.put("b", 42.9F);
 
+        Prefs.put(preference1, 2);
+
         Log.e("ASD", Prefs.get("a", 0)+"");
 
         Log.e("ASD", Prefs.get("b", 0)+"");
