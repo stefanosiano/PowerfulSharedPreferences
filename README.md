@@ -87,7 +87,7 @@ Gradle
   
 ```
 dependencies {
-    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.2' // Put this line into module's build.gradle
+    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.3' // Put this line into module's build.gradle
 }
 ```
   
