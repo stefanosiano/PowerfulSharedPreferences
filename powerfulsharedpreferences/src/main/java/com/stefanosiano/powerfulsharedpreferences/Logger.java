@@ -2,6 +2,8 @@ package com.stefanosiano.powerfulsharedpreferences;
 
 import android.util.Log;
 
+import java.util.HashMap;
+
 /** Class that will log everything, based on set log level. */
 
 class Logger {
@@ -11,11 +13,12 @@ class Logger {
 
     static void setLevel(int logLevel){mLogLevel = logLevel;}
 
-    static void logBuild(){
+    static void logBuild(String defaultPrefsName, Crypter crypter, HashMap<String, PrefContainer> prefsMap){
         if(mLogLevel < Prefs.Builder.LOG_VERBOSE)
             return;
-        Log.v(mTag, "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
-        //todo Log.v(mTag, "Retrieved " + classs.getSimpleName() + " " + key + " : " + value + ".");
+        Log.v(mTag, "Initialized with default SharedPreferences " + defaultPrefsName + " with encryption " + (crypter != null));
+        for(PrefContainer prefContainer : prefsMap.values())
+            Log.v(mTag, "Additional SharedPreferences files: " + prefContainer.name + " with encryption " + ((crypter != null) && prefContainer.useCrypter));
     }
 
     static void logErrorChangeCrypter(Exception e){

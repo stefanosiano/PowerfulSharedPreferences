@@ -4,15 +4,10 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
-import android.util.SparseArray;
-import android.util.SparseIntArray;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * SharedPreferences wrapper class, with added features like encryption, logging and type safety.
@@ -139,7 +134,7 @@ public final class Prefs {
                 prefContainer.build(context);
 
             Logger.setLevel(logLevel);
-            Logger.logBuild();
+            Logger.logBuild(defaultPrefsName, mCrypter, prefMap);
 
             //clearing fields for security reason (memory dump)
             password = "";
