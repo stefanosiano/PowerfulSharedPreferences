@@ -1,6 +1,6 @@
 PowerfulSharedPreferences
 =========================
-Powerful and easy SharedPreferences wrapper, with support for automatic encryption, logs and multiple SharedPreferences files.
+Android library with a powerful and easy SharedPreferences wrapper, with support for automatic encryption, logs and multiple SharedPreferences files.  
   
   
 Planned features (for now):  
@@ -49,8 +49,8 @@ Type of data will be inferred from the given value type.
   
   
   
-Suggested (Opinionated) Usage
------------------------------
+Suggested Usage
+---------------
   
 Instead of having a class with multiple declared constants, representing the keys of the preferences, you can declare the PowerfulPreferences<> objects, like this:
 
@@ -87,7 +87,7 @@ Gradle
   
 ```
 dependencies {
-    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.1' // Put this line into module's build.gradle
+    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.2' // Put this line into module's build.gradle
 }
 ```
   
