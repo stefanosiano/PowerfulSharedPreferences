@@ -3,9 +3,6 @@ PowerfulSharedPreferences
 Android library with a powerful and easy SharedPreferences wrapper, with support for automatic encryption, logs and multiple SharedPreferences files.  
   
   
-Planned features (for now):  
-* Support for reactive programming
-  
   
 Usage
 -----
@@ -96,9 +93,4 @@ Proguard
 --------
 No steps are required, since configuration is already included.  
   
-  
-  
-Roadmap
--------
-Add support for reactive programming
 
