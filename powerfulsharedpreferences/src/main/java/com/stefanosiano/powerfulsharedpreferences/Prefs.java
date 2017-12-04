@@ -534,15 +534,17 @@ public final class Prefs {
     /** Decrypts the value corresponding to a key */
     private static String getAndDecrypt(String key, String preferencesFileName) {
         SharedPreferences sharedPreferences = findPref(preferencesFileName);
-        if(findCrypter(preferencesFileName) == null)
-            sharedPreferences.getString(key, "");
+        Crypter crypter = findCrypter(preferencesFileName);
+
+        if(crypter == null)
+            return sharedPreferences.getString(key, "");
 
         try{
-            String encryptedKey = findCrypter(preferencesFileName).encrypt(key);
+            String encryptedKey = crypter.encrypt(key);
             String encryptedValue = sharedPreferences.getString(encryptedKey, "");
             if(TextUtils.isEmpty(encryptedValue))
                 return "";
-            String value = findCrypter(preferencesFileName).decrypt(encryptedValue);
+            String value = crypter.decrypt(encryptedValue).replace(encryptedKey, "");
             Logger.logDecrypt(key, encryptedKey, encryptedValue, value);
             return value;
         }
@@ -566,7 +568,7 @@ public final class Prefs {
 
         try{
             String encryptedKey = crypter.encrypt(key);
-            String encryptedValue = crypter.encrypt(value.trim());
+            String encryptedValue = crypter.encrypt(value.trim().concat(encryptedKey));
 
             Logger.logEncrypt(key, encryptedKey, encryptedValue, value.trim());
 
