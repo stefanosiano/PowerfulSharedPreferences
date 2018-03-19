@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
         Prefs.put("a", 142);
         Prefs.put("b", 42.9F);
 
-        Prefs.put(preference1, 2);
+        preference1.put(2);
 
         Log.e("ASD", Prefs.get("a", 0)+"");
 
@@ -28,11 +28,11 @@ public class MainActivity extends Activity {
         Log.e("ASD", Prefs.get("b2", 0)+"");
 
 
-        Log.e("ASD2", Prefs.get(preference1)+"");
-        Log.e("ASD2", Prefs.get(preference2)+"");
+        Log.e("ASD2", preference1.get()+"");
+        Log.e("ASD2", preference2.get()+"");
         Prefs.put(preference1, 2);
         Prefs.put(preference2, 2.54);
-        Log.e("ASD2", Prefs.get(preference1)+"");
-        Log.e("ASD2", Prefs.get(preference2)+"");
+        Log.e("ASD2", preference1.get()+"");
+        Log.e("ASD2", preference2.get()+"");
     }
 }

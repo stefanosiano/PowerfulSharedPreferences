@@ -60,8 +60,8 @@ This way you declare default values only once, along with their classes, to have
 To put and get values you can then:  
 
 ```
-    Prefs.put(preference1, value);
-    Prefs.get(preference1);
+    preference1.put(value);
+    preference1.get();
 ```
     
   
@@ -84,7 +84,7 @@ Gradle
   
 ```
 dependencies {
-    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.5' // Put this line into module's build.gradle
+    compile 'com.stefanosiano:powerfulsharedpreferences:0.1.6' // Put this line into module's build.gradle
 }
 ```
   

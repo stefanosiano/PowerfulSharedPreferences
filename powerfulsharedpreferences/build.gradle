@@ -12,15 +12,14 @@ def gitUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences.git'    
 def libDescription = 'Powerful and easy SharedPreferences wrapper, with automatic encryption'   // Library description
 
 //data to change on updates
-def libVersion = "0.1.5"// This is the library version used when deploying the artifact
-def gitTag = '0.1.5'
+def libVersion = "0.1.6"// This is the library version used when deploying the artifact
+def gitTag = '0.1.6'
 
 group = libGroupId //bintray org/group name
 version = libVersion //version
 
 android {
     compileSdkVersion 27
-    buildToolsVersion "27.0.1"
 
     defaultConfig {
         minSdkVersion 14
