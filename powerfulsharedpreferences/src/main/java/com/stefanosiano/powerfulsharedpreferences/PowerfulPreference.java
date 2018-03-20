@@ -4,41 +4,53 @@ package com.stefanosiano.powerfulsharedpreferences;
  * PowerfulPreference object used to retrieve information to save and retrieve data into SharedPreferences
  */
 
-public interface PowerfulPreference<T> {
+public abstract class PowerfulPreference<T> {
 
-    /**
-     * Returns the file name associated to this preference
-     */
-    String getPreferencesFileName();
+    private String key;
+    private T defaultValue;
+    private String prefName;
 
-    /**
-     * Returns the default value of the preference
-     */
-    T getDefaultValue();
+    protected PowerfulPreference(String key, T defaultValue, String prefName) {
+        this.key = key;
+        this.defaultValue = defaultValue;
+        this.prefName = prefName;
+    }
 
-    /**
-     * Returns the key of the preference
-     */
-    String getKey();
+    protected PowerfulPreference(String key, T defaultValue) {
+        this.key = key;
+        this.defaultValue = defaultValue;
+        this.prefName = null;
+    }
 
-    /**
-     * Returns the class of the value to save/retrieve
-     */
-    Class getPrefClass();
+    /** Returns the file name associated to this preference */
+    public String getPreferencesFileName() {
+        return prefName;
+    }
 
-    /**
-     * Returns the data of the preference from a string
-     */
-    T parse(String s) throws Exception;
+    /** Returns the default value of the preference */
+    public T getDefaultValue() {
+        return defaultValue;
+    }
+
+    /** Returns the key of the preference */
+    public String getKey() {
+        return key;
+    }
+
+    /** Returns the class of the value to save/retrieve */
+    protected abstract Class getPrefClass();
+
+    /** Returns the data of the preference from a string. Exceptions are handled by the library itself */
+    protected abstract T parse(String s);
 
 
-    /**
-     * Returns the value of this preference
-     */
-    T get();
+    /** Returns the value of this preference */
+    public T get() {
+        return Prefs.get(this);
+    }
 
-    /**
-     * Puts a value to this preference
-     */
-    void put(T value);
+    /** Puts a value to this preference */
+    public void put(T value) {
+        Prefs.put(this, value);
+    }
 }

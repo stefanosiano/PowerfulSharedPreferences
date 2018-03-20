@@ -60,10 +60,26 @@ This way you declare default values only once, along with their classes, to have
 To put and get values you can then:  
 
 ```
+    Prefs.put(preference1, value);
+    Prefs.get(preference1);
+```
+or even better:  
+
+```
     preference1.put(value);
     preference1.get();
 ```
-    
+  
+Finally, you can provide custom implementations of the preferences like:
+  
+```
+        PowerfulPreference<BigDecimal> pref = new PowerfulPreference<BigDecimal>("pref", BigDecimal.ZERO) {
+            @Override protected Class getPrefClass() {return BigDecimal.class;}
+            @Override protected BigDecimal parse(String s) {return new BigDecimal(s);}
+        };
+```
+  
+  
   
   
 Encryption

@@ -7,6 +7,8 @@ import android.util.Log;
 import com.stefanosiano.powerfulsharedpreferences.PowerfulPreference;
 import com.stefanosiano.powerfulsharedpreferences.Prefs;
 
+import java.math.BigDecimal;
+
 public class MainActivity extends Activity {
 
     public static final PowerfulPreference<Integer> preference1 = Prefs.newPref("p3", 1);
@@ -34,5 +36,10 @@ public class MainActivity extends Activity {
         Prefs.put(preference2, 2.54);
         Log.e("ASD2", preference1.get()+"");
         Log.e("ASD2", preference2.get()+"");
+
+        PowerfulPreference<BigDecimal> pref = new PowerfulPreference<BigDecimal>("pref", BigDecimal.ZERO) {
+            @Override protected Class getPrefClass() {return BigDecimal.class;}
+            @Override protected BigDecimal parse(String s) {return new BigDecimal(s);}
+        };
     }
 }
