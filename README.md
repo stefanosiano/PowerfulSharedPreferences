@@ -1,6 +1,6 @@
 PowerfulSharedPreferences
 =========================
-Android library with a powerful and easy SharedPreferences wrapper, with support for automatic encryption, logs and multiple SharedPreferences files.  
+Android library with a powerful and easy SharedPreferences wrapper, with support for automatic encryption, logs, multiple SharedPreferences files and type safety.  
   
   
   
