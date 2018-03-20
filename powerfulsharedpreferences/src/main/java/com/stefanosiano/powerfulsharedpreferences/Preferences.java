@@ -4,6 +4,11 @@ package com.stefanosiano.powerfulsharedpreferences;
  * PowerfulPreference wrapper for Double
  */
 
+class BPreference extends PowerfulPreference<Boolean> {
+    BPreference(String key, Boolean defaultValue, String prefName) {super(key, defaultValue, prefName);}
+    @Override public Boolean parse(String s) {return Boolean.parseBoolean(s);}
+    @Override public Class getPrefClass() {return Boolean.class;}
+}
 class IPreference extends PowerfulPreference<Integer> {
     IPreference(String key, Integer defaultValue, String prefName) {super(key, defaultValue, prefName);}
     @Override public Integer parse(String s) {return Integer.parseInt(s);}
