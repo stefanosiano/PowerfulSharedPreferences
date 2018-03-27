@@ -7,7 +7,7 @@ Android library with a powerful and easy SharedPreferences wrapper, with support
 Usage
 -----
   
-Just initialize this library inside the onCreate() method and terminate it inside the onTerminate() method of your Application class  
+Just initialize this library inside the onCreate() method of your Application class  
   
 ```
 public class MyApplication extends Application {
@@ -22,12 +22,6 @@ public class MyApplication extends Application {
                 .addPrefs("encrypted_shared_prefs_file_name2", Context.MODE_PRIVATE, true)
                 .setCrypter("password", null)
                 .build();
-    }
-
-    @Override
-    public void onTerminate() {
-        Prefs.terminate();
-        super.onTerminate();
     }
 }  
 ```
