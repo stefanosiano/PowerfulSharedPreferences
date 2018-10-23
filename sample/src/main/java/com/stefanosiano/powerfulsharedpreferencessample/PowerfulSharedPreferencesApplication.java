@@ -23,9 +23,4 @@ public class PowerfulSharedPreferencesApplication extends Application {
                 .build();
     }
 
-    @Override
-    public void onTerminate() {
-        Prefs.terminate();
-        super.onTerminate();
-    }
 }

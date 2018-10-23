@@ -19,16 +19,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Prefs.put("a", 142);
-        Prefs.put("b", 42.9F);
-
-        preference1.put(2);
-
-        Log.e("ASD", Prefs.get("a", 0)+"");
-
-        Log.e("ASD", Prefs.get("b", 0)+"");
-        Log.e("ASD", Prefs.get("b2", 0)+"");
-
 
         Log.e("ASD2", preference1.get()+"");
         Log.e("ASD2", preference2.get()+"");
@@ -36,6 +26,7 @@ public class MainActivity extends Activity {
         Prefs.put(preference2, 2.54);
         Log.e("ASD2", preference1.get()+"");
         Log.e("ASD2", preference2.get()+"");
+
 
         PowerfulPreference<BigDecimal> pref = new PowerfulPreference<BigDecimal>("pref", BigDecimal.ZERO) {
             @Override protected Class getPrefClass() {return BigDecimal.class;}

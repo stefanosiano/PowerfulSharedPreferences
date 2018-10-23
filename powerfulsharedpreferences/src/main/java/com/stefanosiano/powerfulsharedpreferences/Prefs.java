@@ -7,7 +7,10 @@ import android.text.TextUtils;
 
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * SharedPreferences wrapper class, with added features like encryption, logging and type safety.
@@ -19,6 +22,7 @@ public final class Prefs {
     private static SharedPreferences mDefaultPrefs;
     private static Crypter mCrypter;
     private static HashMap<String, PrefContainer> prefMap = new HashMap<>();
+    private static HashMap<String, Object> cacheMap = new HashMap<>();
 
 
 
@@ -166,15 +170,6 @@ public final class Prefs {
 
 
 
-    /** Releases data hold by this class. Call this in your {@link Application#onTerminate()} method */
-    public static void terminate(){
-        Logger.logTerminate();
-        mDefaultPrefs = null;
-        mCrypter = null;
-        prefMap.clear();
-        prefMap = null;
-    }
-
     /**
      * Changes the values of all the preferences files, encrypting them with a new password and salt
      * Only preferences already using a crypter will be changed.
@@ -201,8 +196,9 @@ public final class Prefs {
      *
      * @param newCrypter Interface that will be used when putting and getting data from SharedPreferences
      */
-    public static void changeCrypter(Crypter newCrypter){
+    synchronized public static void changeCrypter(Crypter newCrypter){
         HashMap<String, Map<String, String>> maps = new HashMap<>(prefMap.size());
+        cacheMap.clear();
 
         for(PrefContainer prefContainer : prefMap.values()) {
             //I update the crypter only for preferences already using a crypter
@@ -294,26 +290,35 @@ public final class Prefs {
      * @param preference Preference to get data from
      * @return The preference value if it exists and is valid, otherwise defValue.
      */
-    public static <T> T get(final PowerfulPreference<T> preference) {
+    synchronized public static <T> T get(final PowerfulPreference<T> preference) {
+        if(cacheMap.containsKey(preference.getCacheMapKey())) {
+            T val = (T) cacheMap.get(preference.getCacheMapKey());
+            Logger.logGetCached(preference.getKey(), val+"", preference.getPrefClass());
+            return val;
+        }
+
         String value = getAndDecrypt(preference.getKey(), preference.getPreferencesFileName());
+        T valueToReturn;
 
         if(TextUtils.isEmpty(value)){
             Logger.logParseNotFound(preference.getKey(), preference.getDefaultValue()+"");
-            return preference.getDefaultValue();
+            valueToReturn = preference.getDefaultValue();
         }
-        try{
-            T parsed = preference.parse(value);
-            Logger.logGet(preference.getKey(), value, preference.getPrefClass());
-            return parsed;
+        else {
+            try {
+                T parsed = preference.parse(value);
+                Logger.logGet(preference.getKey(), value, preference.getPrefClass());
+                valueToReturn = parsed;
+            } catch (NumberFormatException e) {
+                Logger.logParseNumberException(e, preference.getKey(), value, preference.getDefaultValue() + "", preference.getPrefClass());
+                valueToReturn = preference.getDefaultValue();
+            } catch (Exception e) {
+                Logger.logParseTypeException(preference.getKey(), value, preference.getDefaultValue() + "", preference.getPrefClass());
+                valueToReturn = preference.getDefaultValue();
+            }
         }
-        catch (NumberFormatException e){
-            Logger.logParseNumberException(e, preference.getKey(), value, preference.getDefaultValue()+"", preference.getPrefClass());
-            return preference.getDefaultValue();
-        }
-        catch (Exception e){
-            Logger.logParseTypeException(preference.getKey(), value, preference.getDefaultValue()+"", preference.getPrefClass());
-            return preference.getDefaultValue();
-        }
+        cacheMap.put(preference.getCacheMapKey(), valueToReturn);
+        return valueToReturn;
     }
 
     /**
@@ -322,95 +327,81 @@ public final class Prefs {
      * @param preference Preference to get key from
      * @param value value to store
      */
-    public static <T> void put(final PowerfulPreference<T> preference, T value) {
+    synchronized public static <T> void put(final PowerfulPreference<T> preference, T value) {
+        cacheMap.put(preference.getCacheMapKey(), value);
         Logger.logPut(preference.getKey(), value+"", preference.getPrefClass());
         encryptAndPut(preference.getKey(), value+"", preference.getPreferencesFileName());
     }
 
 
     /**
-     * Retrieves a stored value from default preferences file.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
+     * Remove a preference.
      *
-     * Note: The return type is inferred from the default value type!
-     *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
-     * @return The preference value if it exists and is valid, otherwise defValue.
+     * @param preference Preference to get key from
      */
-    public static <T> T get(final String key, final T defValue) {
-        return get(key, defValue, null);
+    synchronized public static <T> void remove(final PowerfulPreference<T> preference) {
+        cacheMap.remove(preference.getCacheMapKey());
+        SharedPreferences.Editor editor = findPref(preference.getPreferencesFileName()).edit();
+
+        if(findCrypter(preference.getPreferencesFileName()) == null)
+            editor.remove(preference.getKey());
+
+        try{ editor.remove(findCrypter(preference.getPreferencesFileName()).encrypt(preference.getKey())); }
+        catch (Exception e){ editor.remove(preference.getKey()); }
+        editor.apply();
     }
 
     /**
-     * Retrieves a stored value.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
+     * Remove a preference.
      *
-     * Note: The return type is inferred from the default value type!
+     * @param preference Preference to get key from
+     */
+    synchronized public static <T> boolean contains(final PowerfulPreference<T> preference) {
+        SharedPreferences sharedPreferences = findPref(preference.getPreferencesFileName());
+        boolean found;
+        if(findCrypter(preference.getPreferencesFileName()) == null) {
+            found = sharedPreferences.contains(preference.getKey());
+            Logger.logContains(preference.getKey(), found);
+            return found;
+        }
+
+        try{ found = sharedPreferences.contains(findCrypter(preference.getPreferencesFileName()).encrypt(preference.getKey())); }
+        catch (Exception e){ found = sharedPreferences.contains(preference.getKey()); }
+
+        Logger.logContains(preference.getKey(), found);
+        return found;
+    }
+
+
+    /**
+     * Removed all the stored keys and values from default preferences file.
      *
-     * @param key      The key of the data to retrieve.
-     * @param defValue Value to return if this preference does not exist or value is invalid.
+     * @return the {@link SharedPreferences.Editor} for chaining. The changes have already been committed/applied
+     * through the execution of this method.
+     * @see android.content.SharedPreferences.Editor#clear()
+     */
+    synchronized public static SharedPreferences.Editor clear() {
+        return clear(null);
+    }
+
+
+    /**
+     * Removed all the stored keys and values.
+     *
      * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
-     * @return The preference value if it exists and is valid, otherwise defValue.
+     * @return the {@link SharedPreferences.Editor} for chaining. The changes have already been committed/applied
+     * through the execution of this method.
+     * @see android.content.SharedPreferences.Editor#clear()
      */
-    public static <T> T get(final String key, final T defValue, String preferencesFileName) {
-        String value = getAndDecrypt(key, preferencesFileName);
+    synchronized public static SharedPreferences.Editor clear(String preferencesFileName) {
+        Set<String> keySet = new HashSet<>();
+        for (String key : cacheMap.keySet()) if (key.startsWith(preferencesFileName + "$")) keySet.add(key);
+        for (String key : keySet) cacheMap.remove(key);
 
-        if(TextUtils.isEmpty(value)){
-            Logger.logParseNotFound(key, defValue+"");
-            return defValue;
-        }
-
-        T val = null;
-
-        try{
-            if(defValue instanceof Integer) val = (T) (Object) Integer.parseInt(value);
-            else if(defValue instanceof Long) val = (T) (Object) Long.parseLong(value);
-            else if(defValue instanceof Float) val = (T) (Object) Float.parseFloat(value);
-            else if(defValue instanceof Double) val = (T) (Object) Double.parseDouble(value);
-            else if(defValue instanceof Boolean) val = (T) (Object) Boolean.parseBoolean(value);
-            else if(defValue instanceof String) val = (T) value;
-
-            if(val != null) {
-                Logger.logGet(key, value+"", defValue.getClass());
-                return val;
-            }
-
-            Logger.logParseTypeException(key, value, defValue+"", defValue.getClass());
-            return defValue;
-        }
-        catch (NumberFormatException e){
-            Logger.logParseNumberException(e, key, value, defValue+"", defValue.getClass());
-            return defValue;
-        }
-    }
-
-    /**
-     * Stores a value into default preferences file.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     */
-    public static <T> void put(final String key, final T value) {
-        put(key, value, null);
-    }
-
-    /**
-     * Stores a value.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
-     *
-     * @param key   The key of the data to modify.
-     * @param value The new value for the data.
-     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
-     */
-    public static <T> void put(final String key, final T value, String preferencesFileName) {
-        Logger.logPut(key, value+"", value.getClass());
-        encryptAndPut(key, value+"", preferencesFileName);
+        Logger.logClear();
+        final SharedPreferences.Editor editor = findPref(preferencesFileName).edit().clear();
+        editor.apply();
+        return editor;
     }
 
 
@@ -421,6 +412,8 @@ public final class Prefs {
     public static Map<String, ?> getAll() {
         return getAll(null);
     }
+
+
     /**
      * @return Returns a map containing a list of pairs key/value representing the preferences.
      * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
@@ -429,105 +422,6 @@ public final class Prefs {
     public static Map<String, ?> getAll(String preferencesFileName) {
         Logger.logGetAll();
         return findPref(preferencesFileName).getAll();
-    }
-
-    /**
-     * Removes a preference value from default preferences file.
-     *
-     * @param key The key of the data to remove.
-     * @see android.content.SharedPreferences.Editor#remove(String)
-     */
-    public static void remove(final String key) {
-        remove(key, null);
-    }
-
-    /**
-     * Removes a preference value.
-     *
-     * @param key The key of the data to remove.
-     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
-     * @see android.content.SharedPreferences.Editor#remove(String)
-     */
-    public static void remove(final String key, String preferencesFileName) {
-        Logger.logRemove(key);
-        SharedPreferences.Editor editor = findPref(preferencesFileName).edit();
-        if(findCrypter(preferencesFileName) == null) {
-            editor.remove(key);
-        }
-
-        try{
-            editor.remove(findCrypter(preferencesFileName).encrypt(key));
-        }
-        catch (Exception e){
-            editor.remove(key);
-        }
-        editor.apply();
-    }
-
-
-    /**
-     * Checks if a value is stored for the given key into default preferences file.
-     *
-     * @param key The key of the data to check.
-     * @return True if the storage contains this key value, False otherwise.
-     * @see android.content.SharedPreferences#contains(String)
-     */
-    public static boolean contains(final String key) {
-        return contains(key, null);
-    }
-
-    /**
-     * Checks if a value is stored for the given key.
-     *
-     * @param key The key of the data to check.
-     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
-     * @return True if the storage contains this key value, False otherwise.
-     * @see android.content.SharedPreferences#contains(String)
-     */
-    public static boolean contains(final String key, String preferencesFileName) {
-        SharedPreferences sharedPreferences = findPref(preferencesFileName);
-        boolean found;
-        if(findCrypter(preferencesFileName) == null) {
-            found = sharedPreferences.contains(key);
-            Logger.logContains(key, found);
-            return found;
-        }
-
-        try{
-            found = sharedPreferences.contains(findCrypter(preferencesFileName).encrypt(key));
-        }
-        catch (Exception e){
-            found = sharedPreferences.contains(key);
-        }
-
-        Logger.logContains(key, found);
-        return found;
-    }
-
-    /**
-     * Removed all the stored keys and values from default preferences file.
-     *
-     * @return the {@link SharedPreferences.Editor} for chaining. The changes have already been committed/applied
-     * through the execution of this method.
-     * @see android.content.SharedPreferences.Editor#clear()
-     */
-    public static SharedPreferences.Editor clear() {
-        return clear(null);
-    }
-
-    /**
-     * Removed all the stored keys and values.
-     *
-     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
-     * @return the {@link SharedPreferences.Editor} for chaining. The changes have already been committed/applied
-     * through the execution of this method.
-     * @see android.content.SharedPreferences.Editor#clear()
-     */
-    public static SharedPreferences.Editor clear(String preferencesFileName) {
-        Logger.logClear();
-        final SharedPreferences.Editor editor = findPref(preferencesFileName).edit().clear();
-        editor.apply();
-        return editor;
     }
 
 

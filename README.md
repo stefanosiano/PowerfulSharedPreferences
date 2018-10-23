@@ -26,24 +26,8 @@ public class MyApplication extends Application {
 }  
 ```
   
-After that, you can simply put and get data through:
-
-```
-    Prefs.put("key", value);
-    Prefs.put("key", value, "prefFileName");
-    Prefs.get("key", defaultValue);
-    Prefs.get("key", defaultValue, "prefFileName");
-```
   
-If no preferences file name is provided, the default file (set during initialization) will be used.  
-Type of data will be inferred from the given value type.  
-  
-  
-  
-Suggested Usage
----------------
-  
-Instead of having a class with multiple declared constants, representing the keys of the preferences, you can declare the PowerfulPreferences<> objects, like this:
+Then, instead of having a class with multiple declared constants, representing the keys of the preferences, you can declare the PowerfulPreferences<> objects, like this:
 
 ```
     public static final PowerfulPreference<Integer> preference1 = Prefs.newPref("key", 0);

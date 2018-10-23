@@ -12,18 +12,19 @@ def gitUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences.git'    
 def libDescription = 'Powerful and easy SharedPreferences wrapper, with automatic encryption'   // Library description
 
 //data to change on updates
-def libVersion = "0.1.6"// This is the library version used when deploying the artifact
-def gitTag = '0.1.6'
+def libVersion = "0.1.7"// This is the library version used when deploying the artifact
+def gitTag = '0.1.7'
 
 group = libGroupId //bintray org/group name
 version = libVersion //version
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
+    android.buildToolsVersion "28.0.3"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName libVersion
         consumerProguardFiles 'psp-proguard-rules.txt'

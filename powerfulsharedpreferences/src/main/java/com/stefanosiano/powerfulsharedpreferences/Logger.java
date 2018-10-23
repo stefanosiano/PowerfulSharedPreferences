@@ -69,6 +69,12 @@ class Logger {
         Log.d(mTag, "Retrieved " + key + " : " + value + " (" + classs.getSimpleName() + ")");
     }
 
+    static void logGetCached(String key, String value, Class classs){
+        if(mLogLevel < Prefs.Builder.LOG_VALUES)
+            return;
+        Log.d(mTag, "Retrieved from cache " + key + " : " + value + " (" + classs.getSimpleName() + ")");
+    }
+
     static void logPut(String key, String value, Class classs){
         if(mLogLevel < Prefs.Builder.LOG_VALUES)
             return;

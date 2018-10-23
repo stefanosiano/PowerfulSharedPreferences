@@ -37,6 +37,11 @@ public abstract class PowerfulPreference<T> {
         return key;
     }
 
+    /** Returns the key of the cache map of the preferences */
+    public String getCacheMapKey() {
+        return prefName + "$" + key;
+    }
+
     /** Returns the class of the value to save/retrieve */
     protected abstract Class getPrefClass();
 
