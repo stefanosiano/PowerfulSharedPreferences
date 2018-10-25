@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 28
@@ -38,5 +40,8 @@ dependencies {
 
     implementation project(path: ':powerfulsharedpreferences')
 
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.2.71"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.30.2"
 }

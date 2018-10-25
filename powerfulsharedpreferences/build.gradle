@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 //fixed data
 def pkgName = 'powerfulsharedpreferences'
@@ -12,8 +14,8 @@ def gitUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences.git'    
 def libDescription = 'Powerful and easy SharedPreferences wrapper, with automatic encryption'   // Library description
 
 //data to change on updates
-def libVersion = "0.1.7"// This is the library version used when deploying the artifact
-def gitTag = '0.1.7'
+def libVersion = "0.1.8"// This is the library version used when deploying the artifact
+def gitTag = '0.1.8'
 
 group = libGroupId //bintray org/group name
 version = libVersion //version
@@ -30,8 +32,14 @@ android {
         consumerProguardFiles 'psp-proguard-rules.txt'
     }
 }
+kotlin {
+    experimental { coroutines 'enable' }
+}
+
 
 dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.2.71"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.30.2"
 }
 
 
