@@ -60,7 +60,7 @@ object Prefs {
          * @param salt If null, salt will be automatically created using SecureRandom and saved in
          * the sharedPreferences (after being encrypted using given password)
          */
-        fun setCrypter(pass: String, salt: ByteArray): Builder {
+        fun setCrypter(pass: String, salt: ByteArray?): Builder {
             this.password = pass
             this.salt = salt
             return this
