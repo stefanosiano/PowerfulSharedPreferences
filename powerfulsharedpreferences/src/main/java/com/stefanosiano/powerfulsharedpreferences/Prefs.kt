@@ -16,6 +16,7 @@ object Prefs {
     private const val CHARSET_UTF8 = "UTF-8"
 
     private lateinit var mDefaultPrefs: SharedPreferences
+    private lateinit var mDefaultName: String
     private var mCrypter: Crypter? = null
     private val prefMap = HashMap<String, PrefContainer>()
     private val cacheMap = HashMap<String, Any?>()
@@ -108,6 +109,7 @@ object Prefs {
         /** Initializes the library with previous provided configuration  */
         fun build() {
             mDefaultPrefs = context.applicationContext.getSharedPreferences(defaultPrefsName, defaultPrefsMode)
+            mDefaultName = defaultPrefsName
 
             //If the user set a password, I generate the default crypter and use it
             mCrypter = if (password.isNullOrEmpty()) this.crypter
@@ -117,7 +119,7 @@ object Prefs {
             prefMap.values.forEach { it.build(context) }
 
             Logger.setLevel(logLevel)
-            Logger.logBuild(defaultPrefsName!!, mCrypter, prefMap)
+            Logger.logBuild(defaultPrefsName, mCrypter, prefMap)
 
             //clearing fields for security reason (memory dump)
             password = ""
@@ -147,7 +149,7 @@ object Prefs {
                             encryptedSalt = SecureRandom().nextLong().toString() + ""
                             prefs.edit().putString(c.encrypt("key") + "!", c.encrypt(encryptedSalt)).apply()
                         } else
-                            encryptedSalt = c.decrypt(encryptedSalt!!)
+                            encryptedSalt = c.decrypt(encryptedSalt)
 
                         salt = encryptedSalt.toByteArray(charset(CHARSET_UTF8))
                     } catch (e: Exception) {
@@ -217,7 +219,7 @@ object Prefs {
             //I update the crypter only for preferences already using a crypter
             if (!prefContainer.useCrypter) continue
 
-            prefContainer.sharedPreferences!!.edit().clear().apply()
+            prefContainer.sharedPreferences?.edit()?.clear()?.apply()
 
             maps[prefContainer.name]?.keys?.forEach { prefContainer.sharedPreferences?.edit()?.putString(it, maps[prefContainer.name]?.get(it))?.apply() }
         }
@@ -255,12 +257,12 @@ object Prefs {
     fun <T> newPref(key: String, value: T, prefName: String?): PowerfulPreference<T> {
 
         val preference: PowerfulPreference<T> = when (value) {
-            is Int -> IPreference(key, value as Int, prefName!!) as PowerfulPreference<T>
-            is Float -> FPreference(key, value as Float, prefName!!) as PowerfulPreference<T>
-            is Double -> DPreference(key, value as Double, prefName!!) as PowerfulPreference<T>
-            is Boolean -> BPreference(key, value as Boolean, prefName!!) as PowerfulPreference<T>
-            is String -> SPreference(key, value as String, prefName!!) as PowerfulPreference<T>
-            is Long -> LPreference(key, value as Long, prefName!!) as PowerfulPreference<T>
+            is Int -> IPreference(key, value as Int, prefName) as PowerfulPreference<T>
+            is Float -> FPreference(key, value as Float, prefName) as PowerfulPreference<T>
+            is Double -> DPreference(key, value as Double, prefName) as PowerfulPreference<T>
+            is Boolean -> BPreference(key, value as Boolean, prefName) as PowerfulPreference<T>
+            is String -> SPreference(key, value as String, prefName) as PowerfulPreference<T>
+            is Long -> LPreference(key, value as Long, prefName) as PowerfulPreference<T>
             else -> null
         } ?: throw RuntimeException("Cannot understand preference type. Please, provide a valid class")
 
@@ -383,7 +385,7 @@ object Prefs {
     fun clear(preferencesFileName: String?): SharedPreferences.Editor {
         val keySet = HashSet<String>()
 
-        keySet.addAll( cacheMap.keys.filter { it.startsWith(preferencesFileName!! + "$") } )
+        keySet.addAll( cacheMap.keys.filter { it.startsWith("${preferencesFileName?:mDefaultName}$") } )
         keySet.forEach{ cacheMap.remove(it) }
 
         Logger.logClear()
