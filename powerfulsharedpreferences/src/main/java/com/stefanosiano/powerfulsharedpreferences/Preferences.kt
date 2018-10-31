@@ -30,3 +30,8 @@ internal class SPreference(key: String, defaultValue: String, prefName: String?)
     override fun getPrefClass() = String::class.java
     override fun parse(s: String) = s
 }
+
+internal class DummyPreference(key: String, defaultValue: Any?, prefName: String?) : PowerfulPreference<String>(key, defaultValue?.toString()?:"", prefName) {
+    override fun getPrefClass() = String::class.java
+    override fun parse(s: String) = s
+}

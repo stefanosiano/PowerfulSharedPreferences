@@ -272,6 +272,27 @@ object Prefs {
 
 
     /**
+     * Retrieves a stored preference from the default preferences file.
+     *
+     * @param key Ket of the preference to get data from
+     * @return The preference value if it exists and is valid, otherwise an empty string.
+     */
+    @Synchronized
+    operator fun get(key: String): String = get(DummyPreference(key, "", mDefaultName))
+
+
+    /**
+     * Retrieves a stored preference.
+     *
+     * @param key Ket of the preference to get data from
+     * @param preferenceName name of the preferences file to use
+     * @return The preference value if it exists and is valid, otherwise an empty string.
+     */
+    @Synchronized
+    operator fun get(key: String, preferenceName: String): String = get(DummyPreference(key, "", preferenceName))
+
+
+    /**
      * Retrieves a stored preference.
      *
      * @param preference Preference to get data from
@@ -308,6 +329,25 @@ object Prefs {
         cacheMap[preference.getCacheMapKey()] = valueToReturn
         return valueToReturn
     }
+
+    /**
+     * Stores a preference in the default preferences file.
+     *
+     * @param key Key of the preference
+     * @param value value to store
+     */
+    @Synchronized
+    fun <T> put(key: String, value: T) = put(DummyPreference(key, value, mDefaultName), value?.toString() ?: "")
+
+    /**
+     * Stores a preference.
+     *
+     * @param key Key of the preference
+     * @param value value to store
+     * @param preferenceName name of the preferences file to use
+     */
+    @Synchronized
+    fun <T> put(key: String, value: T, preferenceName: String) { return put( DummyPreference(key, value, preferenceName), value?.toString() ?: "" ) }
 
     /**
      * Stores a preference.
