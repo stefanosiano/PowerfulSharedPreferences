@@ -278,7 +278,7 @@ object Prefs {
      * @return The preference value if it exists and is valid, otherwise an empty string.
      */
     @Synchronized
-    operator fun get(key: String): String = get(DummyPreference(key, "", mDefaultName))
+    operator fun get(key: String): String = get(DummyPreference(key, "", null))
 
 
     /**
@@ -337,7 +337,7 @@ object Prefs {
      * @param value value to store
      */
     @Synchronized
-    fun <T> put(key: String, value: T) = put(DummyPreference(key, value, mDefaultName), value?.toString() ?: "")
+    fun <T> put(key: String, value: T) = put(DummyPreference(key, value, null), value?.toString() ?: "")
 
     /**
      * Stores a preference.
