@@ -17,6 +17,7 @@ object Prefs {
 
     private lateinit var mDefaultPrefs: SharedPreferences
     private lateinit var mDefaultName: String
+    private var mCacheEnabled: Boolean = false
     private var mCrypter: Crypter? = null
     private val prefMap = HashMap<String, PrefContainer>()
     private val cacheMap = HashMap<String, Any?>()
@@ -40,6 +41,7 @@ object Prefs {
         private var password: String? = null
         private var salt: ByteArray? = null
         private var defaultPrefsMode = Context.MODE_PRIVATE
+        private var cacheEnabled = true
         private var logLevel = LOG_DISABLED
 
         /**
@@ -79,6 +81,15 @@ object Prefs {
         }
 
         /**
+         * Disables the cache map of the preferences.
+         * If this function is not called, the cache map is enabled.
+         */
+        fun disableCache(): Builder {
+            this.cacheEnabled = false
+            return this
+        }
+
+        /**
          * Add a sharedPreferences file other then the default one.
          * To set the default preferences file, call [.setDefaultPrefs].
          * If not specified, default preference file will be named as the application package name.
@@ -110,6 +121,7 @@ object Prefs {
         fun build() {
             mDefaultPrefs = context.applicationContext.getSharedPreferences(defaultPrefsName, defaultPrefsMode)
             mDefaultName = defaultPrefsName
+            mCacheEnabled = cacheEnabled
 
             //If the user set a password, I generate the default crypter and use it
             mCrypter = if (password.isNullOrEmpty()) this.crypter
@@ -190,7 +202,7 @@ object Prefs {
      */
     @Synchronized fun changeCrypter(newCrypter: Crypter?) {
         val maps = HashMap<String, Map<String, String>>(prefMap.size)
-        cacheMap.clear()
+        if(mCacheEnabled) cacheMap.clear()
 
         for (prefContainer in prefMap.values) {
             //I update the crypter only for preferences already using a crypter
@@ -300,7 +312,7 @@ object Prefs {
      */
     @Synchronized
     operator fun <T> get(preference: PowerfulPreference<T>): T {
-        if (cacheMap.containsKey(preference.getCacheMapKey())) {
+        if(mCacheEnabled && cacheMap.containsKey(preference.getCacheMapKey())) {
             val value = cacheMap[preference.getCacheMapKey()] as T
             Logger.logGetCached(preference.key, value.toString() + "", preference.getPrefClass())
             return value
@@ -326,7 +338,7 @@ object Prefs {
             }
 
         }
-        cacheMap[preference.getCacheMapKey()] = valueToReturn
+        if(mCacheEnabled) cacheMap[preference.getCacheMapKey()] = valueToReturn
         return valueToReturn
     }
 
@@ -357,7 +369,7 @@ object Prefs {
      */
     @Synchronized
     fun <T> put(preference: PowerfulPreference<T>, value: T) {
-        cacheMap[preference.getCacheMapKey()] = value
+        if(mCacheEnabled) cacheMap[preference.getCacheMapKey()] = value
         Logger.logPut(preference.key, value.toString() + "", preference.getPrefClass())
         encryptAndPut(preference.key, value.toString() + "", preference.preferencesFileName)
     }
@@ -370,7 +382,7 @@ object Prefs {
      */
     @Synchronized
     fun <T> remove(preference: PowerfulPreference<T>) {
-        cacheMap.remove(preference.getCacheMapKey())
+        if(mCacheEnabled) cacheMap.remove(preference.getCacheMapKey())
         val editor = findPref(preference.preferencesFileName).edit()
 
         if (findCrypter(preference.preferencesFileName) == null)
@@ -425,8 +437,10 @@ object Prefs {
     fun clear(preferencesFileName: String?): SharedPreferences.Editor {
         val keySet = HashSet<String>()
 
-        keySet.addAll( cacheMap.keys.filter { it.startsWith("${preferencesFileName?:mDefaultName}$") } )
-        keySet.forEach{ cacheMap.remove(it) }
+        if(mCacheEnabled) {
+            keySet.addAll(cacheMap.keys.filter { it.startsWith("${preferencesFileName ?: mDefaultName}$") })
+            keySet.forEach { cacheMap.remove(it) }
+        }
 
         Logger.logClear()
         val editor = findPref(preferencesFileName).edit().clear()
