@@ -1,1 +1,1 @@
-include ':powerfulsharedpreferences', ':sample'
+include ':powerfulsharedpreferences', ':sample', ':powerfulsharedpreferences_livedata'

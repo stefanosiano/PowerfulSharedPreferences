@@ -1,0 +1,15 @@
+package com.stefanosiano.powerfulsharedpreferences_livedata
+
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
+import com.stefanosiano.powerfulsharedpreferences.PowerfulPreference
+
+
+class PowerfulPreferenceLiveData<T>(private val preference: PowerfulPreference<T>): LiveData<T>() {
+    val callback = { value: T -> postValue(value) }
+    override fun onInactive() { super.onInactive(); preference.stopObserve(callback) }
+    override fun onActive() { super.onActive(); preference.observe(callback) }
+}
+fun <T> PowerfulPreference<T>.asLiveData(): LiveData<T> = PowerfulPreferenceLiveData(this)
+fun <T> PowerfulPreference<T>.observe(owner: LifecycleOwner, observer: Observer<T>) = asLiveData().observe(owner, observer)
