@@ -86,11 +86,11 @@ Through Prefs.changeCrypter() you can change the encryption of the SharedPrefere
 Change callbacks
 ----------------
   
-You can observe globally the changes of the sharedPreferences through 'Prefs.observe { key, value ->  }'.  
-Alternatively, you can observe the changes of a single PowerfulPreference object through 'preference.observe { value -> }'.  
+You can observe globally the changes of the sharedPreferences through ```Prefs.observe { key, value ->  }```.  
+Alternatively, you can observe the changes of a single PowerfulPreference object through ```preference.observe { value -> }```.  
 **Note that when you use these methods, you will have to call the stopObserve() method!**  
   
-Finally, you can use the provided powerfulsharedpreferences_livedata module to use the preferences as LiveData, using 'preference.observe (LifecycleOwner, Observer{ value -> } )'  
+Finally, you can use the provided powerfulsharedpreferences_livedata module to use the preferences as LiveData, using ```preference.observe (LifecycleOwner, Observer{ value -> } )```.  
 **When using the live data, you don't have to call the stopObserve() method**  
   
   
