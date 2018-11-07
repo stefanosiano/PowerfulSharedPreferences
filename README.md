@@ -68,12 +68,6 @@ Finally, you can provide custom implementations of the preferences like:
 ```
   
   
-  
-- Easy to use, with logs and single items for wrapping methods  
-- Reliability, with type safety  
-- Simple safety, with obfuscation
-- Flexibility, with callbacks or live data on preferences changes and multiple preferences files  
-  
 Obfuscation
 -----------
   
