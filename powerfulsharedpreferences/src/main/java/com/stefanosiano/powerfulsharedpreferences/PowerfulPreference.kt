@@ -25,7 +25,7 @@ abstract class PowerfulPreference<T>(
     internal fun callOnChange(value: T) { changeCallbacks.forEach{ it.invoke(value) } }
 
     /** Returns the key of the cache map of the preferences  */
-    fun getCacheMapKey() = "$preferencesFileName$$key"
+    internal fun getCacheMapKey() = "$preferencesFileName$$key"
 
     /** Returns the class of the value to save/retrieve  */
     abstract fun getPrefClass(): Class<*>
