@@ -21,6 +21,7 @@ object Prefs {
     private var mCrypter: Crypter? = null
     private val prefMap = HashMap<String, PrefContainer>()
     private val cacheMap = HashMap<String, Any?>()
+    private val prefChangedCallbacks = ArrayList<(key: String, value: Any) -> Unit>()
 
 
     /**
@@ -241,6 +242,13 @@ object Prefs {
     }
 
 
+    /** Observes the preferences. When a preference is changed, the function is called. When preferences are cleared, the function is NOT called */
+    fun observe(function: (key: String, value: Any) -> Unit) = prefChangedCallbacks.add(function)
+
+    /** Stops observing the preferences */
+    fun stopObserve(function: (key: String, value: Any) -> Unit) = prefChangedCallbacks.remove(function)
+
+
     /**
      * Convenience method to easily create PowerfulPreferences of default preferences file.
      * This works only with primitive types (and their boxed types)
@@ -370,6 +378,8 @@ object Prefs {
     @Synchronized
     fun <T> put(preference: PowerfulPreference<T>, value: T) {
         if(mCacheEnabled) cacheMap[preference.getCacheMapKey()] = value
+        prefChangedCallbacks.forEach { it.invoke(preference.key, value as Any) }
+        preference.callOnChange(value)
         Logger.logPut(preference.key, value.toString() + "", preference.getPrefClass())
         encryptAndPut(preference.key, value.toString() + "", preference.preferencesFileName)
     }
@@ -383,6 +393,8 @@ object Prefs {
     @Synchronized
     fun <T> remove(preference: PowerfulPreference<T>) {
         if(mCacheEnabled) cacheMap.remove(preference.getCacheMapKey())
+        prefChangedCallbacks.forEach { it.invoke(preference.key, preference.defaultValue as Any) }
+        preference.callOnChange(preference.defaultValue)
         val editor = findPref(preference.preferencesFileName).edit()
 
         if (findCrypter(preference.preferencesFileName) == null)
@@ -441,6 +453,9 @@ object Prefs {
             keySet.addAll(cacheMap.keys.filter { it.startsWith("${preferencesFileName ?: mDefaultName}$") })
             keySet.forEach { cacheMap.remove(it) }
         }
+
+//        prefChangedCallbacks.forEach { it.invoke(preference.key, preference.defaultValue as Any) }
+//        preference.callOnChange(preference.defaultValue)
 
         Logger.logClear()
         val editor = findPref(preferencesFileName).edit().clear()
