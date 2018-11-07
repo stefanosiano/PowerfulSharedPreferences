@@ -377,7 +377,7 @@ object Prefs {
      */
     @Synchronized
     fun <T> put(preference: PowerfulPreference<T>, value: T) {
-        if(mCacheEnabled) cacheMap[preference.getCacheMapKey()] = value
+        if(mCacheEnabled && preference !is DummyPreference) cacheMap[preference.getCacheMapKey()] = value
         prefChangedCallbacks.forEach { it.invoke(preference.key, value as Any) }
         preference.callOnChange(value)
         Logger.logPut(preference.key, value.toString() + "", preference.getPrefClass())
