@@ -253,6 +253,7 @@ object Prefs {
      * Convenience method to easily create PowerfulPreferences of default preferences file.
      * This works only with primitive types (and their boxed types)
      * like int, Integer, boolean, Boolean...
+     * For Enums, use [newEnumPref]
      *
      * Note: The return type is inferred from the value type
      *
@@ -266,6 +267,7 @@ object Prefs {
      * Convenience method to easily create PowerfulPreferences.
      * This works only with primitive types (and their boxed types)
      * like int, Integer, boolean, Boolean...
+     * For Enums, use [newEnumPref]
      *
      * Note: The return type is inferred from the value type
      *
@@ -286,6 +288,38 @@ object Prefs {
             else -> null
         } ?: throw RuntimeException("Cannot understand preference type. Please, provide a valid class")
 
+        Logger.logNewPref(key, value.toString() + "", preference.getPrefClass())
+        return preference
+    }
+
+
+    /**
+     * Convenience method to easily create PowerfulPreferences.
+     * This works only with Enums
+     *
+     * Note: For other types refer to [newPref]
+     *
+     * @param clazz Class of the Enum of the preference
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference
+     */
+    fun <T> newEnumPref(clazz: Class<T>, key: String, value: T): PowerfulPreference<T> where T:Enum<T> = newEnumPref(clazz, key, value, null)
+
+    /**
+     * Convenience method to easily create PowerfulPreferences.
+     * This works only with Enums
+     *
+     * Note: For other types refer to [newPref]
+     *
+     * @param clazz Class of the Enum of the preference
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @param prefName SharedPreferences file name (passing null will use default preferences file)
+     * @return An instance of PowerfulPreference
+     */
+    fun <T> newEnumPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T:Enum<T> {
+        val preference: PowerfulPreference<T> = EnumPreference(clazz, key, value, prefName)
         Logger.logNewPref(key, value.toString() + "", preference.getPrefClass())
         return preference
     }
@@ -380,8 +414,8 @@ object Prefs {
         if(mCacheEnabled && preference !is DummyPreference) cacheMap[preference.getCacheMapKey()] = value
         prefChangedCallbacks.forEach { it.invoke(preference.key, value as Any) }
         preference.callOnChange(value)
-        Logger.logPut(preference.key, value.toString() + "", preference.getPrefClass())
-        encryptAndPut(preference.key, value.toString() + "", preference.preferencesFileName)
+        Logger.logPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else value.toString(), preference.getPrefClass())
+        encryptAndPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else value.toString(), preference.preferencesFileName)
     }
 
 

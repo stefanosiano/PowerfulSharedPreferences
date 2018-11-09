@@ -29,7 +29,7 @@ internal object Logger {
 
     fun logTerminate() = log(LOG_VERBOSE, 1, "Terminating and releasing all objects in memory")
 
-    fun logNewPref(key: String, defaultValue: String, classs: Class<*>) = log(LOG_VERBOSE, 1, "Created preference $key : $defaultValue (${classs.simpleName})")
+    fun logNewPref(key: String, defaultValue: String, classs: Class<*>?) = log(LOG_VERBOSE, 1, "Created preference $key : $defaultValue (${classs?.simpleName ?: "unknown"})")
 
     fun logGetAll() = log(LOG_VERBOSE, 1, "Retrieving all the preferences")
 
@@ -37,11 +37,11 @@ internal object Logger {
 
     fun logRemove(key: String) = log(LOG_VERBOSE, 1, "Removing $key")
 
-    fun logGet(key: String, value: String, classs: Class<*>) = log(LOG_VALUES, 1, "Retrieved $key : $value (${classs.simpleName})")
+    fun logGet(key: String, value: String, classs: Class<*>?) = log(LOG_VALUES, 1, "Retrieved $key : $value (${classs?.simpleName ?: "unknown"})")
 
-    fun logGetCached(key: String, value: String, classs: Class<*>) = log(LOG_VALUES, 1, "Retrieved from cache $key : $value (${classs.simpleName})")
+    fun logGetCached(key: String, value: String, classs: Class<*>?) = log(LOG_VALUES, 1, "Retrieved from cache $key : $value (${classs?.simpleName ?: "unknown"})")
 
-    fun logPut(key: String, value: String, classs: Class<*>) = log(LOG_VALUES, 1, "Put $key : $value (${classs.simpleName})")
+    fun logPut(key: String, value: String, classs: Class<*>?) = log(LOG_VALUES, 1, "Put $key : $value (${classs?.simpleName ?: "unknown"})")
 
     fun logContains(key: String, found: Boolean) = log(LOG_VERBOSE, 1, "Check existance of $key: $found")
 
@@ -55,9 +55,9 @@ internal object Logger {
 
     fun logParseNotFound(key: String, defaultValue: String) = log(LOG_ERRORS, 3, "No data found for key $key. Returning default value: $defaultValue")
 
-    fun logParseNumberException(e: NumberFormatException, key: String, value: String, defaultValue: String, classs: Class<*>) = log(LOG_ERRORS, 4, "Error trying to parse $key : $value as ${classs.simpleName}. ${e.localizedMessage}\nReturning default value: $defaultValue")
+    fun logParseNumberException(e: NumberFormatException, key: String, value: String, defaultValue: String, classs: Class<*>?) = log(LOG_ERRORS, 4, "Error trying to parse $key : $value as ${classs?.simpleName ?: "unknown"}. ${e.localizedMessage}\nReturning default value: $defaultValue")
 
-    fun logParseTypeException(key: String, value: String, defaultValue: String, classs: Class<*>) = log(LOG_ERRORS, 4, "Don't know hot to parse $key : $value as ${classs.simpleName}. Returning default value: $defaultValue")
+    fun logParseTypeException(key: String, value: String, defaultValue: String, classs: Class<*>?) = log(LOG_ERRORS, 4, "Don't know hot to parse $key : '$value' as ${classs?.simpleName ?: "unknown"}. Returning default value: $defaultValue")
 
 
     private fun log(logLevel: Int, logType: Int, logText: String) {

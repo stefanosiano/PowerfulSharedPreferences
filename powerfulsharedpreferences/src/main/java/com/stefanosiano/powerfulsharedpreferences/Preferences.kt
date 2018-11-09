@@ -35,3 +35,8 @@ internal class DummyPreference(key: String, defaultValue: Any?, prefName: String
     override fun getPrefClass() = String::class.java
     override fun parse(s: String) = s
 }
+
+internal class EnumPreference<T>(private val clazz: Class<T>, key: String, defaultValue: T, prefName: String?) : PowerfulPreference<T>(key, defaultValue, prefName) where T: Enum<T> {
+    override fun getPrefClass() = clazz
+    override fun parse(s: String): T = clazz.enumConstants.first { it.name == s }
+}
