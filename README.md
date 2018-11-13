@@ -4,6 +4,7 @@ Android library with a powerful and easy SharedPreferences wrapper, with support
   
   
 This library focuses on:  
+- Speed, with a cache map  
 - Ease of use, with logs and single items for wrapping methods  
 - Reliability, with type safety  
 - Simple safety, with obfuscation  
@@ -46,8 +47,6 @@ To put and get values you can then:
 ```
     Prefs.put("key", value)
     Prefs.get("key")
-    Prefs.put(preference1, value)
-    Prefs.get(preference1)
 ```
 or even better:  
 
@@ -66,6 +65,16 @@ Finally, you can provide custom implementations of the preferences like:
       override fun parse(s: String): BigDecimal = if( s.isEmpty() ) BigDecimal.ZERO else BigDecimal(s)
   }
 ```
+  
+  
+Speed
+-----
+  
+Shared preferences are already cached by Android, but what happens if you want to save a custom implementation of an object? You have tu continuously marshal and unmarshal the value saved in the preferences to use the object.  
+The cache map used by the library focuses on this use case, where the object is saved as is, needing no unmarshalling.  
+Of course, if you don't need it, you can disable it through the ```disableCache()``` method of the ```Prefs.init()``` builder.  
+  
+  
   
   
 Obfuscation
