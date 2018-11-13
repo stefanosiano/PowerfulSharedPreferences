@@ -43,7 +43,10 @@ Then, instead of having a class with multiple declared constants, representing t
 ```
   
 This way you declare default values only once, along with their classes, to have type safety, too. For example, if you try to put a String as a value for a preference declared as Integer, compiler will get angry!  
+Notes:  
 Enum classes are supported. They can be instantiated with the ```Prefs.newEnumPref()``` method, and under the hood they are saved as strings, using the ```Enum.name()``` method.  
+When a preference is put, a String is saved in the file, so the method ```toString()``` will be called on the objects passed to the ```Prefs.put()``` method.  
+  
 To put and get values you can then:  
 
 ```
@@ -82,7 +85,8 @@ Of course, if you don't need it, you can disable it through the ```disableCache(
 Obfuscation
 -----------
   
-Basic safety is provided through obfuscation. *Note that whatever is on the client can be cracked, so don't put secrets inside the preferences, even with obfuscation.*  
+Basic safety is provided through obfuscation.  
+*Note that whatever is on the client can be cracked, so don't put secrets inside the preferences, even with obfuscation.*  
   
 Through Prefs.setDefaultCrypter(crypter) method, you can provide your own encryption implementation, in order to have more control over it.  
 If you just want an easy encryption method, just use Prefs.setDefaultCrypter(password, salt). Default crypter uses AES algorithm and then encodes/decodes data in base64. If passed salt is null, a salt will be automatically generated, using SecureRandom, and then will be saved inside the preference file itself (after being encypted with the given password). It will be saved with a key ending with an exclamation mark, since it's not in the Base64 charset, ensuring its key will always be unique.  
