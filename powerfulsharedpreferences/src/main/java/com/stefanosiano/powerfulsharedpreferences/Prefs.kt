@@ -388,7 +388,7 @@ object Prefs {
      * Stores a preference in the default preferences file.
      *
      * @param key Key of the preference
-     * @param value value to store
+     * @param value value to store (its toString method will be called to get the string to save)
      */
     @Synchronized
     fun <T> put(key: String, value: T) = put(DummyPreference(key, value, null), value?.toString() ?: "")
@@ -397,7 +397,7 @@ object Prefs {
      * Stores a preference.
      *
      * @param key Key of the preference
-     * @param value value to store
+     * @param value value to store (its toString method will be called to get the string to save)
      * @param preferenceName name of the preferences file to use
      */
     @Synchronized
@@ -407,7 +407,7 @@ object Prefs {
      * Stores a preference.
      *
      * @param preference Preference to get key from
-     * @param value value to store
+     * @param value value to store (its toString method will be called to get the string to save)
      */
     @Synchronized
     fun <T> put(preference: PowerfulPreference<T>, value: T) {
