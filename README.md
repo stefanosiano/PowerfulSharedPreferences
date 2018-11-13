@@ -8,7 +8,7 @@ This library focuses on:
 - Ease of use, with logs and single items for wrapping methods  
 - Reliability, with type safety  
 - Simple safety, with obfuscation  
-- Flexibility, with callbacks or live data on preferences changes and multiple preferences files  
+- Flexibility, with custom objects, support for enums, callbacks or live data on preferences changes and multiple preferences files  
   
   
 Usage
@@ -39,9 +39,11 @@ Then, instead of having a class with multiple declared constants, representing t
 ```
     val preference1: PowerfulPreference<Boolean> by lazy { Prefs.newPref("key1", false) }
     val preference2: PowerfulPreference<Integer> by lazy { Prefs.newPref("key2", 0) }
+    val preference3: PowerfulPreference<MyEnym> by lazy { Prefs.newEnumPref("key3", MyEnum.Value1) }
 ```
   
 This way you declare default values only once, along with their classes, to have type safety, too. For example, if you try to put a String as a value for a preference declared as Integer, compiler will get angry!  
+Enum classes are supported. They can be instantiated with the ```Prefs.newEnumPref()``` method, and under the hood they are saved as strings, using the ```Enum.name()``` method.  
 To put and get values you can then:  
 
 ```
@@ -111,7 +113,7 @@ Gradle
   
 ```
 dependencies {
-    implementation 'com.stefanosiano:powerfulsharedpreferences:0.1.15' // Put this line into module's build.gradle
+    implementation 'com.stefanosiano:powerfulsharedpreferences:0.1.20' // Put this line into module's build.gradle
     implementation 'com.stefanosiano:powerfulsharedpreferences_livedata:0.1.15' // Put this line if you want to use a preference as a live data
 }
 ```
