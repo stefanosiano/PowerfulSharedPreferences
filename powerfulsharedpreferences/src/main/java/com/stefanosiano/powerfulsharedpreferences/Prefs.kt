@@ -288,7 +288,7 @@ object Prefs {
             else -> null
         } ?: throw RuntimeException("Cannot understand preference type. Please, provide a valid class")
 
-        Logger.logNewPref(key, value.toString() + "", preference.getPrefClass())
+        Logger.logNewPref(key, preference.toPreferences(value), preference.getPrefClass())
         return preference
     }
 
@@ -320,7 +320,7 @@ object Prefs {
      */
     fun <T> newEnumPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T:Enum<T> {
         val preference: PowerfulPreference<T> = EnumPreference(clazz, key, value, prefName)
-        Logger.logNewPref(key, value.toString() + "", preference.getPrefClass())
+        Logger.logNewPref(key, preference.toPreferences(value), preference.getPrefClass())
         return preference
     }
 
@@ -356,7 +356,7 @@ object Prefs {
     operator fun <T> get(preference: PowerfulPreference<T>): T {
         if(mCacheEnabled && cacheMap.containsKey(preference.getCacheMapKey())) {
             val value = cacheMap[preference.getCacheMapKey()] as T
-            Logger.logGetCached(preference.key, value.toString() + "", preference.getPrefClass())
+            Logger.logGetCached(preference.key, preference.toPreferences(value), preference.getPrefClass())
             return value
         }
 
@@ -364,7 +364,7 @@ object Prefs {
         val valueToReturn: T
 
         if (TextUtils.isEmpty(value)) {
-            Logger.logParseNotFound(preference.key, preference.defaultValue.toString() + "")
+            Logger.logParseNotFound(preference.key, preference.toPreferences(preference.defaultValue) + "")
             valueToReturn = preference.defaultValue
         } else {
             valueToReturn = try {
@@ -372,10 +372,10 @@ object Prefs {
                 Logger.logGet(preference.key, value, preference.getPrefClass())
                 parsed
             } catch (e: NumberFormatException) {
-                Logger.logParseNumberException(e, preference.key, value, preference.defaultValue.toString() + "", preference.getPrefClass())
+                Logger.logParseNumberException(e, preference.key, value, preference.toPreferences(preference.defaultValue) + "", preference.getPrefClass())
                 preference.defaultValue
             } catch (e: Exception) {
-                Logger.logParseTypeException(preference.key, value, preference.defaultValue.toString() + "", preference.getPrefClass())
+                Logger.logParseTypeException(preference.key, value, preference.toPreferences(preference.defaultValue) + "", preference.getPrefClass())
                 preference.defaultValue
             }
 
@@ -414,8 +414,8 @@ object Prefs {
         if(mCacheEnabled && preference !is DummyPreference) cacheMap[preference.getCacheMapKey()] = value
         prefChangedCallbacks.forEach { it.invoke(preference.key, value as Any) }
         preference.callOnChange(value)
-        Logger.logPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else value.toString(), preference.getPrefClass())
-        encryptAndPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else value.toString(), preference.preferencesFileName)
+        Logger.logPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else preference.toPreferences(value), preference.getPrefClass())
+        encryptAndPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else preference.toPreferences(value), preference.preferencesFileName)
     }
 
 

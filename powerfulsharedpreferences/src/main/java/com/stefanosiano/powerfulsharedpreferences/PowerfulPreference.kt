@@ -33,6 +33,9 @@ abstract class PowerfulPreference<T>(
     /** Returns the data of the preference from a string. Exceptions are handled by the library itself  */
     abstract fun parse(s: String): T
 
+    /** Parses the value and then returns the string to put in the preferences */
+    open fun toPreferences(value: T): String = value.toString()
+
     /** Returns the value of this preference  */
     fun get(): T = Prefs.get(this)
 
