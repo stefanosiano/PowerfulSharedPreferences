@@ -567,4 +567,4 @@ object Prefs {
     }
 }
 
-inline fun <T> tryOr(default: T, function: () -> T): T { return try{ function.invoke() } catch (e: Exception) { default } }
+internal inline fun <T> tryOr(default: T, function: () -> T): T { return try{ function.invoke() } catch (e: Exception) { default } }
