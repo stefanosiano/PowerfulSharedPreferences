@@ -1,4 +1,4 @@
-package com.stefanosiano.powerfulsharedpreferences
+package com.stefanosiano.powerfullibraries.sharedpreferences
 
 
 abstract class PowerfulPreference<T>(

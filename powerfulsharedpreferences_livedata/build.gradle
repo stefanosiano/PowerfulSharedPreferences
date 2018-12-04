@@ -5,13 +5,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 //fixed data
-def pkgName = 'powerfulsharedpreferences_livedata'
-def libGroupId = "com.stefanosiano"                                                             // Maven Group ID for the artifact
-def libArtifactId = "powerfulsharedpreferences_livedata"                                                 // Maven Artifact ID for the artifact
-def libName = "Powerful SharedPreferences Live Data"                                                      // Library name
+def pkgName = 'sharedpreferences_livedata'
+def libGroupId = "com.stefanosiano.powerfullibraries"                                           // Maven Group ID for the artifact
+def libArtifactId = "sharedpreferences_livedata"                                                // Maven Artifact ID for the artifact
+def libName = "Powerful SharedPreferences Live Data"                                            // Library name
 def siteUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences'                       // Homepage URL of the library
 def gitUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences.git'                    // Git repository URL
-def libDescription = 'Powerful and easy SharedPreferences wrapper, with automatic encryption'   // Library description
+def libDescription = 'Adds Live Data support to PowerfulSharedPreferences'                      // Library description
 
 //data to change on updates
 def libVersion = "0.1.15"// This is the library version used when deploying the artifact
@@ -33,12 +33,15 @@ android {
     }
 }
 
+repositories {
+    maven { url  "https://dl.bintray.com/stefanosiano/maven-repo" }
+}
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.3.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0"
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0' //ViewModel and LiveData
-    implementation 'com.stefanosiano:powerfulsharedpreferences:+'  //PowerfulSharedPreferences
+    implementation 'com.stefanosiano.powerfullibraries:sharedpreferences:+'  //PowerfulSharedPreferences
 }
 
 

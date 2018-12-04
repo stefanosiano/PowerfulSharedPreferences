@@ -1,4 +1,4 @@
-package com.stefanosiano.powerfulsharedpreferencessample;
+package com.stefanosiano.powerfullibraries.sharedpreferencessample;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -6,8 +6,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.stefanosiano.powerfulsharedpreferences.PowerfulPreference;
-import com.stefanosiano.powerfulsharedpreferences.Prefs;
+import com.stefanosiano.powerfullibraries.sharedpreferences.PowerfulPreference;
+import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs;
 
 import java.math.BigDecimal;
 

@@ -1,9 +1,9 @@
-package com.stefanosiano.powerfulsharedpreferences_livedata
+package com.stefanosiano.powerfullibraries.sharedpreferences_livedata
 
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import com.stefanosiano.powerfulsharedpreferences.PowerfulPreference
+import com.stefanosiano.powerfullibraries.sharedpreferences.PowerfulPreference
 
 
 class PowerfulPreferenceLiveData<T>(private val preference: PowerfulPreference<T>): LiveData<T>() {
