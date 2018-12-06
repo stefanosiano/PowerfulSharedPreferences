@@ -4,8 +4,8 @@ Android library with a powerful and easy SharedPreferences wrapper, with support
   
   
 This library focuses on:  
-- Speed, with a cache map  
-- Ease of use, with logs and single items for wrapping methods  
+- Speed, with a non-obfuscated cache map  
+- Ease of use, with logs and single items for wrapping methods, or possibility to use the preference as a delegated property  
 - Reliability, with type safety  
 - Simple safety, with obfuscation  
 - Flexibility, with custom objects, support for enums, callbacks or live data on preferences changes and multiple preferences files  
@@ -37,9 +37,12 @@ public class MyApplication extends Application {
 Then, instead of having a class with multiple declared constants, representing the keys of the preferences, you can declare the PowerfulPreferences<> objects, like this:
 
 ```
-    val preference1: PowerfulPreference<Boolean> by lazy { Prefs.newPref("key1", false) }
-    val preference2: PowerfulPreference<Integer> by lazy { Prefs.newPref("key2", 0) }
-    val preference3: PowerfulPreference<MyEnym> by lazy { Prefs.newEnumPref("key3", MyEnum.Value1) }
+    //PowerfulPreference instance: it provides all normal methods and observable ones  
+    val preference1: PowerfulPreference<Boolean> = Prefs.newPref("key1", false)
+    //Integer instance: it's a delegated property, but loses observable methods  
+    val preference2: Integer by Prefs.newPref("key2", 0)
+    val preference3: PowerfulPreference<MyEnym> = Prefs.newEnumPref("key3", MyEnum.Value1)
+    val preference4: MyEnym by Prefs.newEnumPref("key4", MyEnum.Value2)
 ```
   
 This way you declare default values only once, along with their classes, to have type safety, too. For example, if you try to put a String as a value for a preference declared as Integer, compiler will get angry!  
@@ -56,9 +59,19 @@ To put and get values you can then:
 or even better:  
 
 ```
+    val preference1: PowerfulPreference<Boolean> = Prefs.newPref("key1", false)
     preference1.put(value)
     preference1.get()
 ```
+or you can use delegated properties, so that you can:    
+
+```
+    val preference1: Boolean by Prefs.newPref("key1", false)
+    preference1 = value
+    preference1
+```
+  
+  
   
 Finally, you can provide custom implementations of the preferences like:
   
@@ -75,9 +88,8 @@ Finally, you can provide custom implementations of the preferences like:
 Speed
 -----
   
-Shared preferences are already cached by Android, but what happens if you want to save a custom implementation of an object? You have tu continuously marshal and unmarshal the value saved in the preferences to use the object.  
-The cache map used by the library focuses on this use case, where the object is saved as is, needing no unmarshalling.  
-Of course, if you don't need it, you can disable it through the ```disableCache()``` method of the ```Prefs.init()``` builder.  
+Shared preferences are already cached by Android, but what happens if you want to save a custom implementation of an object? You have to continuously marshal and unmarshal the value saved in the preferences to use the object. Also, if the shared preferences are obfuscated, the cache will use unobfuscated values, meaning it doesn't need to perform any operation to get them.  
+Of course, if you don't need it, or you don't want unobfuscated values in memory, you can disable it through the ```disableCache()``` method of the ```Prefs.init()``` builder.  
   
   
   
@@ -117,8 +129,8 @@ Gradle
   
 ```
 dependencies {
-    implementation 'com.stefanosiano.powerfullibraries:sharedpreferences:0.1.22' // Put this line into module's build.gradle
-    implementation 'com.stefanosiano.powerfullibraries:sharedpreferences_livedata:0.1.15' // Put this line if you want to use a preference as a live data
+    implementation 'com.stefanosiano.powerfullibraries:sharedpreferences:0.1.23' // Put this line into module's build.gradle
+    implementation 'com.stefanosiano.powerfullibraries:sharedpreferences_livedata:0.1.16' // Put this line if you want to use a preference as a live data
 }
 ```
   
