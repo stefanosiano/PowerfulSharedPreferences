@@ -1,7 +1,9 @@
 package com.stefanosiano.powerfullibraries.sharedpreferences
 
+import kotlin.reflect.KProperty
 
-abstract class PowerfulPreference<T>(
+
+abstract class PowerfulPreference<T> (
 
         /** Returns the key of the preference  */
         val key: String,
@@ -41,4 +43,8 @@ abstract class PowerfulPreference<T>(
 
     /** Puts a value to this preference  */
     fun put(value: T) = Prefs.put(this, value)
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = get()
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = put(value)
 }

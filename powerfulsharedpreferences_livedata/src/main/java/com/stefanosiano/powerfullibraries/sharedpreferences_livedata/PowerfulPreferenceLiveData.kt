@@ -7,7 +7,7 @@ import com.stefanosiano.powerfullibraries.sharedpreferences.PowerfulPreference
 
 
 class PowerfulPreferenceLiveData<T>(private val preference: PowerfulPreference<T>): LiveData<T>() {
-    val callback = { value: T -> postValue(value) }
+    private val callback = { value: T -> postValue(value) }
     override fun onInactive() { super.onInactive(); preference.stopObserve(callback) }
     override fun onActive() { super.onActive(); preference.observe(callback) }
 }

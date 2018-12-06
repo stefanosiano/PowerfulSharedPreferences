@@ -10,8 +10,9 @@ package="com.stefanosiano.powerfullibraries.sharedpreferencessample">
     android:supportsRtl="true"
     android:name=".PowerfulSharedPreferencesApplication"
     android:theme="@style/AppTheme">
-    <activity android:name=".MainActivity">
+    <activity android:name=".MainActivityKotlin">
         <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
             <action android:name="android.intent.action.MAIN" />
 
             <category android:name="android.intent.category.LAUNCHER" />
