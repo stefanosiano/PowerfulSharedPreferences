@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 
 //fixed data
 def pkgName = 'sharedpreferences_livedata'
-def libGroupId = "com.stefanosiano.powerfullibraries"                                           // Maven Group ID for the artifact
+def libGroupId = "com.stefanosiano.powerful_libraries"                                          // Maven Group ID for the artifact
 def libArtifactId = "sharedpreferences_livedata"                                                // Maven Artifact ID for the artifact
 def libName = "Powerful SharedPreferences Live Data"                                            // Library name
 def siteUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences'                       // Homepage URL of the library
@@ -37,7 +37,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.3.11"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.0"
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0' //ViewModel and LiveData
-    implementation 'com.stefanosiano.powerfullibraries:sharedpreferences:0.1.23'  //PowerfulSharedPreferences
+    implementation 'com.stefanosiano.powerful_libraries:sharedpreferences:1.0.0'  //PowerfulSharedPreferences
 }
 
 
@@ -116,7 +116,7 @@ bintray {
 
     // Package info for BinTray
     pkg {
-        repo = 'maven-repo'
+        repo = 'powerful_libraries'
         // it is the name that appears in bintray when logged
         name = pkgName
         desc = libDescription

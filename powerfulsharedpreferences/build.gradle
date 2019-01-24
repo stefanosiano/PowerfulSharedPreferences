@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 
 //fixed data
 def pkgName = 'sharedpreferences'
-def libGroupId = "com.stefanosiano.powerfullibraries"                                           // Maven Group ID for the artifact
+def libGroupId = "com.stefanosiano.powerful_libraries"                                          // Maven Group ID for the artifact
 def libArtifactId = "sharedpreferences"                                                         // Maven Artifact ID for the artifact
 def libName = "Powerful SharedPreferences"                                                      // Library name
 def siteUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences'                       // Homepage URL of the library
@@ -115,7 +115,7 @@ bintray {
 
     // Package info for BinTray
     pkg {
-        repo = 'maven-repo'
+        repo = 'powerful_libraries'
         // it is the name that appears in bintray when logged
         name = pkgName
         desc = libDescription
