@@ -1,4 +1,4 @@
-package com.stefanosiano.powerfullibraries.sharedpreferences
+package com.stefanosiano.powerful_libraries.sharedpreferences
 
 import android.content.Context
 import android.content.SharedPreferences

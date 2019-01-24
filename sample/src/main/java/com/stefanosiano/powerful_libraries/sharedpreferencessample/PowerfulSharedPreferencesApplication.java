@@ -1,9 +1,9 @@
-package com.stefanosiano.powerfullibraries.sharedpreferencessample;
+package com.stefanosiano.powerful_libraries.sharedpreferencessample;
 
 import android.app.Application;
 import android.content.Context;
 
-import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs;
+import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs;
 
 /**
  * Application class

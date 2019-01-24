@@ -1,10 +1,10 @@
-package com.stefanosiano.powerfullibraries.sharedpreferencessample
+package com.stefanosiano.powerful_libraries.sharedpreferencessample
 
 import android.app.Activity
 import android.os.Bundle
 import android.util.Log
-import com.stefanosiano.powerfullibraries.sharedpreferences.PowerfulPreference
-import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs
+import com.stefanosiano.powerful_libraries.sharedpreferences.PowerfulPreference
+import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs
 import java.math.BigDecimal
 
 

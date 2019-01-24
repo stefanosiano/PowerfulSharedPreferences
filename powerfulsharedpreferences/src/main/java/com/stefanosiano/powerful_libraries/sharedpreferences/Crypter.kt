@@ -1,4 +1,4 @@
-package com.stefanosiano.powerfullibraries.sharedpreferences
+package com.stefanosiano.powerful_libraries.sharedpreferences
 
 
 /** Interface used to encrypt and decrypt data in SharedPreferences  */

@@ -1,11 +1,10 @@
-package com.stefanosiano.powerfullibraries.sharedpreferences
+package com.stefanosiano.powerful_libraries.sharedpreferences
 
 import android.util.Log
 import java.util.HashMap
-import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs.Builder.Companion.LOG_ERRORS
-import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs.Builder.Companion.LOG_DISABLED
-import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs.Builder.Companion.LOG_VALUES
-import com.stefanosiano.powerfullibraries.sharedpreferences.Prefs.Builder.Companion.LOG_VERBOSE
+import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_ERRORS
+import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_VALUES
+import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_VERBOSE
 
 
 internal object Logger {

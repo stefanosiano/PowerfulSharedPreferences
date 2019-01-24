@@ -1,4 +1,4 @@
-package com.stefanosiano.powerfullibraries.sharedpreferences
+package com.stefanosiano.powerful_libraries.sharedpreferences
 
 
 internal class BPreference(key: String, defaultValue: Boolean, prefName: String?) : PowerfulPreference<Boolean>(key, defaultValue, prefName) {
