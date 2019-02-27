@@ -1,9 +1,5 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
-
 
 internal class BPreference(key: String, defaultValue: Boolean, prefName: String?) : PowerfulPreference<Boolean>(key, defaultValue, prefName) {
     override fun getPrefClass() = Boolean::class.java
@@ -52,12 +48,3 @@ internal class EnumPreference<T>(private val clazz: Class<T>, key: String, defau
     override fun parse(s: String): T = clazz.enumConstants.first { it.name == s }
     override fun toPreferences(value: T): String = value.name
 }
-
-class PowerfulPreferenceLiveData<T>(private val preference: PowerfulPreference<T>): LiveData<T>() {
-    private val callback = { value: T -> postValue(value) }
-    override fun onInactive() { super.onInactive(); preference.stopObserve(callback) }
-    override fun onActive() { super.onActive(); preference.observe(callback) }
-}
-
-fun <T> PowerfulPreference<T>.asLiveData(): LiveData<T> = PowerfulPreferenceLiveData(this)
-fun <T> PowerfulPreference<T>.observe(owner: LifecycleOwner, observer: Observer<T>) = asLiveData().observe(owner, observer)
