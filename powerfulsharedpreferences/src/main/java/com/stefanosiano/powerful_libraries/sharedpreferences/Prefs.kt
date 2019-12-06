@@ -232,7 +232,7 @@ object Prefs {
             //I update the crypter only for preferences already using a crypter
             if (!prefContainer.useCrypter) continue
 
-            prefContainer.sharedPreferences?.edit()?.clear()?.apply()
+            prefContainer.sharedPreferences?.edit()?.clear()?.commit()
 
             maps[prefContainer.name]?.keys?.forEach { prefContainer.sharedPreferences?.edit()?.putString(it, maps[prefContainer.name]?.get(it))?.apply() }
         }
@@ -288,6 +288,41 @@ object Prefs {
             else -> null
         } ?: throw RuntimeException("Cannot understand preference type. Please, provide a valid class")
 
+        Logger.logNewPref(key, preference.toPreferences(value), preference.getPrefClass())
+        return preference
+    }
+
+
+    /**
+     * Convenience method to easily create PowerfulPreferences of default preferences file.
+     * This works with any object implementing [PrefObj]
+     * For Enums, use [newEnumPref]
+     *
+     * Note: The return type is inferred from the value type
+     *
+     * @param clazz Class of the object stored
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @return An instance of PowerfulPreference
+     */
+    fun <T> newPref(clazz: Class<T>, key: String, value: T) where T: PrefObj = newPref(clazz, key, value, null)
+
+
+    /**
+     * Convenience method to easily create PowerfulPreferences.
+     * This works with any object implementing [PrefObj]
+     * For Enums, use [newEnumPref]
+     *
+     * Note: The return type is inferred from the value type
+     *
+     * @param clazz Class of the object stored
+     * @param key Key of the preference
+     * @param value default value to return in case of errors
+     * @param prefName SharedPreferences file name (passing null will use default preferences file)
+     * @return An instance of PowerfulPreference
+     */
+    fun <T> newPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T: PrefObj {
+        val preference: PowerfulPreference<T> = ObjPreference(clazz, key, value, prefName)
         Logger.logNewPref(key, preference.toPreferences(value), preference.getPrefClass())
         return preference
     }
@@ -469,7 +504,7 @@ object Prefs {
      * through the execution of this method.
      * @see android.content.SharedPreferences.Editor.clear
      */
-    @Synchronized fun clear(): SharedPreferences.Editor = clear(null)
+    @Synchronized fun clear(): SharedPreferences.Editor = clear(null).also { cacheMap.clear() }
 
 
     /**
@@ -493,8 +528,8 @@ object Prefs {
 //        preference.callOnChange(preference.defaultValue)
 
         Logger.logClear()
-        val editor = findPref(preferencesFileName).edit().clear()
-        editor.apply()
+        val editor = findPref(preferencesFileName).edit()
+        editor.clear().commit()
         return editor
     }
 

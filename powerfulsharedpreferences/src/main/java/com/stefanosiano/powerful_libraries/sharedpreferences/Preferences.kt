@@ -45,6 +45,17 @@ internal class DummyPreference(key: String, defaultValue: Any?, prefName: String
 
 internal class EnumPreference<T>(private val clazz: Class<T>, key: String, defaultValue: T, prefName: String?) : PowerfulPreference<T>(key, defaultValue, prefName) where T: Enum<T> {
     override fun getPrefClass() = clazz
-    override fun parse(s: String): T = clazz.enumConstants.first { it.name == s }
+    override fun parse(s: String): T = clazz.enumConstants?.first { it.name == s }!!
     override fun toPreferences(value: T): String = value.name
+}
+
+internal class ObjPreference<T>(private val clazz: Class<T>, key: String, defaultValue: T, prefName: String?) : PowerfulPreference<T>(key, defaultValue, prefName) where T: PrefObj {
+    override fun getPrefClass() = clazz
+    override fun parse(s: String): T = clazz.newInstance().fromPreferences(s) as T
+    override fun toPreferences(value: T): String = value.toPreferences()
+}
+
+interface PrefObj {
+    fun fromPreferences(s: String): PrefObj
+    fun toPreferences(): String
 }
