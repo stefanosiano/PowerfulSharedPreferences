@@ -81,7 +81,17 @@ Finally, you can provide custom implementations of the preferences like:
       constructor(key: String, defaultValue: BigDecimal): super(key, defaultValue)
       override fun getPrefClass(): Class<*> = BigDecimal::class.java
       override fun parse(s: String): BigDecimal = if( s.isEmpty() ) BigDecimal.ZERO else BigDecimal(s)
+      override fun toPreferences(value: T): String = toString()
   }
+```
+  
+or  
+```
+  class MyObject : PrefObj {
+      override fun fromPreferences(s: String): PrefObj = Gson().fromJson(s, MyObject::class.java)
+      override fun toPreferences(): String = Gson().toJson(this)
+  }
+  Prefs.newPref(MyObject::class.java, "preference1", MyObject())
 ```
   
   
