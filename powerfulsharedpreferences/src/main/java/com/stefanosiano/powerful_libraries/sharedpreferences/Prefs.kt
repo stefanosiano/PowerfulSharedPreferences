@@ -22,7 +22,7 @@ object Prefs {
     private val prefMap = HashMap<String, PrefContainer>()
     private val cacheMap = HashMap<String, Any?>()
     private val prefChangedCallbacks = ArrayList<(key: String, value: Any) -> Unit>()
-    private var onPreferenceSet: ((pref: PowerfulPreference<*>?, key: String, value: String, preferenceFileName: String) -> Unit)? = null
+    private var onPreferenceSet: ((pref: PowerfulPreference<*>?, key: String, value: String, cryptedKey: String, cryptedValue: String, preferenceFileName: String) -> Unit)? = null
 
 
     /**
@@ -122,9 +122,10 @@ object Prefs {
 
         /**
          * Set the function to call when a preference is put into the shared preferences
+         * If no crypter is in use, crypted key and value will be the same of key and value
          * @param onPrefSet function to call on a preference set
          */
-        fun setOnPreferenceSet(onPrefSet: (pref: PowerfulPreference<*>?, key: String, value: String, preferenceFileName: String) -> Unit): Builder {
+        fun setOnPreferenceSet(onPrefSet: (pref: PowerfulPreference<*>?, key: String, value: String, cryptedKey: String, cryptedValue: String, preferenceFileName: String) -> Unit): Builder {
             onPreferenceSet = onPrefSet
             return this
         }
@@ -174,7 +175,7 @@ object Prefs {
                             val encryptedSaltKey = c.encrypt("key") + "!"
                             val encryptedSaltValue = c.encrypt(encryptedSalt)
                             prefs.edit().putString(encryptedSaltKey, encryptedSaltValue).apply()
-                            onPreferenceSet?.invoke(null, encryptedSaltKey, encryptedSaltValue, mDefaultName)
+//                            onPreferenceSet?.invoke(null, encryptedSaltKey, encryptedSaltValue, mDefaultName)
                         } else
                             encryptedSalt = c.decrypt(encryptedSalt)
 
@@ -216,7 +217,7 @@ object Prefs {
      * @param newCrypter Interface that will be used when putting and getting data from SharedPreferences. Passing null will remove current crypter
      */
     @Synchronized fun changeCrypter(newCrypter: Crypter?) {
-        val maps = HashMap<String, Map<String, String>>(prefMap.size)
+        val maps = HashMap<String, Map<String, Triple<String, String, String>>>(prefMap.size)
         if(mCacheEnabled) cacheMap.clear()
 
         for (prefContainer in prefMap.values) {
@@ -226,12 +227,12 @@ object Prefs {
 
             val values = prefContainer.sharedPreferences?.all ?: continue
 
-            val newValues = HashMap<String, String>(values.size)
+            val newValues = HashMap<String, Triple<String, String, String>>(values.size)
             try {
                 values.keys.forEach {
                     val newKey = mCrypter?.decrypt(it) ?: it
                     val newVal = mCrypter?.decrypt(values[it].toString()) ?: values[it].toString()
-                    newValues[newCrypter?.encrypt(newKey)?: newKey] = newCrypter?.encrypt(newVal) ?: newVal
+                    newValues[newCrypter?.encrypt(newKey)?: newKey] = Triple(newKey, newVal, newCrypter?.encrypt(newVal) ?: newVal)
                 }
             } catch (e: Exception) {
                 Logger.logErrorChangeCrypter(e)
@@ -250,8 +251,8 @@ object Prefs {
 
 
             maps[prefContainer.name]?.keys?.forEach {
-                prefContainer.sharedPreferences?.edit()?.putString(it, maps[prefContainer.name]?.get(it))?.apply()
-                onPreferenceSet?.invoke(null, it, maps[prefContainer.name]?.get(it)?:"", prefContainer.name)
+                prefContainer.sharedPreferences?.edit()?.putString(it, maps[prefContainer.name]?.get(it)?.third)?.apply()
+                onPreferenceSet?.invoke(null, maps[prefContainer.name]?.get(it)?.first?:"", maps[prefContainer.name]?.get(it)?.second?:"", it, maps[prefContainer.name]?.get(it)?.third?:"", prefContainer.name)
             }
         }
 
@@ -597,7 +598,7 @@ object Prefs {
         val crypter = findCrypter(preferencesFileName)
         if(crypter == null) {
             editor.putString(key, value.trim()).apply()
-            onPreferenceSet?.invoke(preference, key, value.trim(), preferencesFileName ?: mDefaultName)
+            onPreferenceSet?.invoke(preference, key, value.trim(), key, value.trim(), preferencesFileName ?: mDefaultName)
             return
         }
 
@@ -607,7 +608,7 @@ object Prefs {
 
             editor.putString(encryptedKey, encryptedValue).apply()
 
-            onPreferenceSet?.invoke(preference, encryptedKey, encryptedValue, preferencesFileName ?: mDefaultName)
+            onPreferenceSet?.invoke(preference, key, value.trim(), encryptedKey, encryptedValue, preferencesFileName ?: mDefaultName)
             Logger.logEncrypt(key, encryptedKey, encryptedValue, value.trim())
         } catch (e: Exception) {
             Logger.logEncryptException(e, key, value)
