@@ -3,6 +3,7 @@ package com.stefanosiano.powerful_libraries.sharedpreferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
+import java.lang.ref.WeakReference
 import java.security.SecureRandom
 import java.util.HashMap
 import java.util.HashSet
@@ -19,6 +20,7 @@ object Prefs {
     private lateinit var mDefaultName: String
     private var mCacheEnabled: Boolean = false
     private var mCrypter: Crypter? = null
+    private val powerfulPrefMap = HashMap<String, ArrayList<WeakReference<PowerfulPreference<Any?>>>>()
     private val prefMap = HashMap<String, PrefContainer>()
     private val cacheMap = HashMap<String, Any?>()
     private val prefChangedCallbacks = ArrayList<(key: String, value: Any) -> Unit>()
@@ -141,6 +143,7 @@ object Prefs {
             else generateDefaultCrypter(mDefaultPrefs, password!!, salt)
 
             prefMap.remove(defaultPrefsName)
+            powerfulPrefMap.clear()
             prefMap.values.forEach { it.build(context) }
 
             Logger.setLevel(logLevel)
@@ -161,7 +164,6 @@ object Prefs {
             val LOG_VALUES = 2
             /** Logs everything, from errors (even when encrypting/decrypting), to values and keys, to other methods. Useful to have everything under control  */
             val LOG_VERBOSE = 3
-
 
             internal fun generateDefaultCrypter(prefs: SharedPreferences, pass: String, saltPassed: ByteArray?): Crypter {
                 var salt = saltPassed
@@ -258,6 +260,12 @@ object Prefs {
 
         mCrypter = newCrypter
         Logger.logChangeCrypter()
+    }
+
+    internal fun registerPreference(preference: PowerfulPreference<Any?>) {
+        val ps = powerfulPrefMap.get(preference.key) ?: ArrayList()
+        ps.add(WeakReference(preference))
+        powerfulPrefMap.put(preference.key, ps)
     }
 
 
@@ -468,9 +476,18 @@ object Prefs {
         if(mCacheEnabled) cacheMap[preference.getCacheMapKey()] = value
         if(preference is DummyPreference) cacheMap.remove(preference.getCacheMapKey())
         prefChangedCallbacks.forEach { it.invoke(preference.key, value as Any) }
-        preference.callOnChange(value)
+//        preference.callOnChange(value)
+        if(preference !is DummyPreference)
+            powerfulPrefMap.get(preference.key)?.filter { it.get()?.preferencesFileName == preference.preferencesFileName }?.forEach {
+                it.get()?.callOnChange(value)
+            }
         Logger.logPut(preference.key, if(preference is EnumPreference) (value as Enum<*>).name else preference.toPreferences(value), preference.getPrefClass())
         encryptAndPut(preference, preference.key, if(preference is EnumPreference) (value as Enum<*>).name else preference.toPreferences(value), preference.preferencesFileName)
+
+        if(preference is DummyPreference)
+            powerfulPrefMap.get(preference.key)?.filter { it.get()?.preferencesFileName == preference.preferencesFileName }?.forEach {
+                it.get()?.callOnChange()
+            }
     }
 
 
@@ -483,7 +500,11 @@ object Prefs {
     fun <T> remove(preference: PowerfulPreference<T>) {
         if(mCacheEnabled) cacheMap.remove(preference.getCacheMapKey())
         prefChangedCallbacks.forEach { it.invoke(preference.key, preference.defaultValue as Any) }
-        preference.callOnChange(preference.defaultValue)
+
+        powerfulPrefMap.get(preference.key)?.filter { it.get()?.preferencesFileName == preference.preferencesFileName }?.forEach {
+            it.get()?.callOnChange(preference.defaultValue)
+        }
+//        preference.callOnChange(preference.defaultValue)
         val editor = findPref(preference.preferencesFileName).edit()
 
         if (findCrypter(preference.preferencesFileName) == null)
@@ -541,6 +562,10 @@ object Prefs {
         if(mCacheEnabled) {
             keySet.addAll(cacheMap.keys.filter { it.startsWith("${preferencesFileName ?: mDefaultName}$") })
             keySet.forEach { cacheMap.remove(it) }
+        }
+
+        powerfulPrefMap.values.flatten().filter { it.get()?.preferencesFileName == preferencesFileName }.forEach {
+            it.get()?.callOnChange(it.get()?.defaultValue)
         }
 
 //        prefChangedCallbacks.forEach { it.invoke(preference.key, preference.defaultValue as Any) }

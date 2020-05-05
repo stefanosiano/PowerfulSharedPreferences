@@ -13,6 +13,11 @@ abstract class PowerfulPreference<T> (
         val preferencesFileName: String?
 ) {
 
+    init {
+        @Suppress("unchecked_cast")
+        Prefs.registerPreference(this as PowerfulPreference<Any?>)
+    }
+
     /** List of callbacks to call when the preference changes */
     private val changeCallbacks = ArrayList<(value: T) -> Unit>()
 
@@ -25,6 +30,8 @@ abstract class PowerfulPreference<T> (
     fun stopObserve(onChange: (value: T) -> Unit) = changeCallbacks.remove(onChange)
 
     internal fun callOnChange(value: T) { changeCallbacks.forEach{ it.invoke(value) } }
+
+    internal fun callOnChange() { changeCallbacks.forEach{ it.invoke(get()) } }
 
     /** Returns the key of the cache map of the preferences  */
     internal fun getCacheMapKey() = "$preferencesFileName$$key"
