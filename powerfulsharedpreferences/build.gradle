@@ -14,7 +14,7 @@ def gitUrl = 'https://github.com/stefanosiano/PowerfulSharedPreferences.git'    
 def libDescription = 'Android library with a powerful and easy SharedPreferences wrapper, with support for obfuscation, logs, multiple SharedPreferences files, type safety and callback on changes (optionally with Android LiveData).'   // Library description
 
 //data to change on updates
-def libVersion = "1.0.8"// This is the library version used when deploying the artifact
+def libVersion = "1.0.9"// This is the library version used when deploying the artifact
 def gitTag = "$libVersion"
 
 group = libGroupId //bintray org/group name
