@@ -277,20 +277,6 @@ object Prefs {
 
 
     /**
-     * Convenience method to easily create PowerfulPreferences of default preferences file.
-     * This works only with primitive types (and their boxed types)
-     * like int, Integer, boolean, Boolean...
-     * For Enums, use [newEnumPref]
-     *
-     * Note: The return type is inferred from the value type
-     *
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference
-     */
-    fun <T> newPref(key: String, value: T): PowerfulPreference<T> = newPref(key, value, null)
-
-    /**
      * Convenience method to easily create PowerfulPreferences.
      * This works only with primitive types (and their boxed types)
      * like int, Integer, boolean, Boolean...
@@ -300,7 +286,7 @@ object Prefs {
      *
      * @param key Key of the preference
      * @param value default value to return in case of errors
-     * @param prefName SharedPreferences file name (passing null will use default preferences file)
+     * @param prefName SharedPreferences file name. If null it uses the default preferences file
      * @return An instance of PowerfulPreference
      */
     fun <T> newPref(key: String, value: T, prefName: String?): PowerfulPreference<T> {
@@ -321,21 +307,6 @@ object Prefs {
 
 
     /**
-     * Convenience method to easily create PowerfulPreferences of default preferences file.
-     * This works with any object implementing [PrefObj]
-     * For Enums, use [newEnumPref]
-     *
-     * Note: The return type is inferred from the value type
-     *
-     * @param clazz Class of the object stored
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference
-     */
-    fun <T> newPref(clazz: Class<T>, key: String, value: T) where T: PrefObj = newPref(clazz, key, value, null)
-
-
-    /**
      * Convenience method to easily create PowerfulPreferences.
      * This works with any object implementing [PrefObj]
      * For Enums, use [newEnumPref]
@@ -345,7 +316,7 @@ object Prefs {
      * @param clazz Class of the object stored
      * @param key Key of the preference
      * @param value default value to return in case of errors
-     * @param prefName SharedPreferences file name (passing null will use default preferences file)
+     * @param prefName SharedPreferences file name. If null it uses the default preferences file
      * @return An instance of PowerfulPreference
      */
     fun <T> newPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T: PrefObj {
@@ -364,20 +335,7 @@ object Prefs {
      * @param clazz Class of the Enum of the preference
      * @param key Key of the preference
      * @param value default value to return in case of errors
-     * @return An instance of PowerfulPreference
-     */
-    fun <T> newEnumPref(clazz: Class<T>, key: String, value: T): PowerfulPreference<T> where T:Enum<T> = newEnumPref(clazz, key, value, null)
-
-    /**
-     * Convenience method to easily create PowerfulPreferences.
-     * This works only with Enums
-     *
-     * Note: For other types refer to [newPref]
-     *
-     * @param clazz Class of the Enum of the preference
-     * @param key Key of the preference
-     * @param value default value to return in case of errors
-     * @param prefName SharedPreferences file name (passing null will use default preferences file)
+     * @param prefName SharedPreferences file name. If null it uses the default preferences file
      * @return An instance of PowerfulPreference
      */
     fun <T> newEnumPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T:Enum<T> {
@@ -387,33 +345,13 @@ object Prefs {
     }
 
 
-    /**
-     * Retrieves a stored preference from the default preferences file.
-     *
-     * @param key Ket of the preference to get data from
-     * @return The preference value if it exists and is valid, otherwise an empty string.
-     */
+    /** Retrieves a stored preference with specified [key] and [preferenceName] (If null, default preferences file is used).
+     * If the preference value doesn't exists or is invalid returns an empty string */
     @Synchronized
-    operator fun get(key: String): String = get(DummyPreference(key, "", null))
+    operator fun get(key: String, preferenceName: String? = null): String = get(DummyPreference(key, "", preferenceName))
 
 
-    /**
-     * Retrieves a stored preference.
-     *
-     * @param key Ket of the preference to get data from
-     * @param preferenceName name of the preferences file to use
-     * @return The preference value if it exists and is valid, otherwise an empty string.
-     */
-    @Synchronized
-    operator fun get(key: String, preferenceName: String): String = get(DummyPreference(key, "", preferenceName))
-
-
-    /**
-     * Retrieves a stored preference.
-     *
-     * @param preference Preference to get data from
-     * @return The preference value if it exists and is valid, otherwise defValue.
-     */
+    /** Retrieves a stored [preference]. If the preference value doesn't exists or is invalid returns its defaultValue */
     @Synchronized
     operator fun <T> get(preference: PowerfulPreference<T>): T {
         if(mCacheEnabled && cacheMap.containsKey(preference.getCacheMapKey())) {
@@ -446,31 +384,12 @@ object Prefs {
         return valueToReturn
     }
 
-    /**
-     * Stores a preference in the default preferences file.
-     *
-     * @param key Key of the preference
-     * @param value value to store (its toString method will be called to get the string to save)
-     */
+    /** Stores the [value] into the preference with specified [key] and [preferenceName] (If null, default preferences file is used).
+     *  Its toPreferences() method will be called to get the string to save */
     @Synchronized
-    fun <T> put(key: String, value: T) = put(DummyPreference(key, value, null), value?.toString() ?: "")
+    fun <T> put(key: String, value: T, preferenceName: String? = null) { return put( DummyPreference(key, value, preferenceName), value?.toString() ?: "" ) }
 
-    /**
-     * Stores a preference.
-     *
-     * @param key Key of the preference
-     * @param value value to store (its toString method will be called to get the string to save)
-     * @param preferenceName name of the preferences file to use
-     */
-    @Synchronized
-    fun <T> put(key: String, value: T, preferenceName: String) { return put( DummyPreference(key, value, preferenceName), value?.toString() ?: "" ) }
-
-    /**
-     * Stores a preference.
-     *
-     * @param preference Preference to get key from
-     * @param value value to store (its toString method will be called to get the string to save)
-     */
+    /** Stores the [value] into the [preference]. Its toPreferences() method will be called to get the string to save */
     @Synchronized
     fun <T> put(preference: PowerfulPreference<T>, value: T) {
         if(mCacheEnabled) cacheMap[preference.getCacheMapKey()] = value
@@ -490,12 +409,12 @@ object Prefs {
             }
     }
 
+    /** Remove the preference with specified [key], [defaultValue] (used for callbacks), and [preferenceName] (If null, default preferences file is used) */
+    @Synchronized
+    fun <T> remove(key: String, defaultValue: T, preferenceName: String? = null) { return remove( DummyPreference(key, defaultValue, preferenceName) ) }
 
-    /**
-     * Remove a preference.
-     *
-     * @param preference Preference to get key from
-     */
+
+    /** Remove the [preference] */
     @Synchronized
     fun <T> remove(preference: PowerfulPreference<T>) {
         if(mCacheEnabled) cacheMap.remove(preference.getCacheMapKey())
@@ -514,11 +433,12 @@ object Prefs {
         editor?.apply()
     }
 
-    /**
-     * Remove a preference.
-     *
-     * @param preference Preference to get key from
-     */
+
+    /** Returns whether the preference with the passed [key] exists in [preferenceName] file (If null, default preferences file is used) */
+    @Synchronized
+    fun <T> contains(key: String, preferenceName: String? = null): Boolean = contains(DummyPreference(key, null, preferenceName))
+
+    /** Returns whether the passed [preference] exists */
     @Synchronized
     operator fun <T> contains(preference: PowerfulPreference<T>): Boolean {
         val sharedPreferences = findPref(preference.preferencesFileName)
@@ -537,22 +457,10 @@ object Prefs {
     }
 
 
-    /**
-     * Removed all the stored keys and values from default preferences file.
-     *
-     * @return the [SharedPreferences.Editor] for chaining. The changes have already been committed/applied
-     * through the execution of this method.
-     * @see android.content.SharedPreferences.Editor.clear
-     */
-    @Synchronized fun clear(): SharedPreferences.Editor = clear(null).also { cacheMap.clear() }
-
 
     /**
-     * Removed all the stored keys and values.
-     *
-     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
-     * @return the [SharedPreferences.Editor] for chaining. The changes have already been committed/applied
-     * through the execution of this method.
+     * Removes all the stored keys and values from [preferencesFileName] (If null, default preferences file will be used).
+     * Returns the [SharedPreferences.Editor] for chaining. The changes have already been committed/applied.
      * @see android.content.SharedPreferences.Editor.clear
      */
     @Synchronized
@@ -574,24 +482,51 @@ object Prefs {
         Logger.logClear()
         val editor = findPref(preferencesFileName).edit()
         editor.clear().commit()
+        if(preferencesFileName == null) cacheMap.clear()
         return editor
     }
 
 
     /**
-     * @return Returns a map containing a list of pairs key/value representing the preferences of default preferences file.
-     * @see android.content.SharedPreferences.getAll
-     */
-    fun getAll() = getAll(null)
-
-    /**
-     * @return Returns a map containing a list of pairs key/value representing the preferences.
+     * @return Returns a map containing all encrypted preferences.
      * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
      * @see android.content.SharedPreferences.getAll
      */
-    fun getAll(preferencesFileName: String?): Map<String, *> {
+    fun getAllEncrypted(preferencesFileName: String? = null): Map<String, *> {
         Logger.logGetAll()
         return findPref(preferencesFileName).all ?: HashMap<String, Any>()
+    }
+
+
+    /**
+     * @return Returns a map containing all decrypted preferences.
+     * @param preferencesFileName Name of the sharedPreferences file to search data in. If null, default preferences file will be used.
+     * @see android.content.SharedPreferences.getAll
+     */
+    fun getAll(preferencesFileName: String? = null): Map<String, *> {
+        Logger.logGetAll()
+        return findPref(preferencesFileName).all?.map { getEncryptedPreferenceAndDecrypt(it.key, preferencesFileName) }?.toMap() ?: HashMap<String, Any>()
+    }
+
+
+    /** Decrypts the value corresponding to a key  */
+    private fun getEncryptedPreferenceAndDecrypt(key: String, preferencesFileName: String?): Pair<String, String> {
+        val sharedPreferences = findPref(preferencesFileName)
+        val crypter = findCrypter(preferencesFileName) ?: return Pair(key, sharedPreferences.getString(key, "") ?: "")
+
+        try {
+            val decryptedKey = crypter.decrypt(key)
+            val encryptedValue = sharedPreferences.getString(key, "") ?: return Pair(decryptedKey, "")
+            if (encryptedValue.isEmpty()) return Pair(decryptedKey, "")
+
+            val value = crypter.decrypt(encryptedValue).replace(key, "")
+            Logger.logDecrypt(decryptedKey, key, encryptedValue, value)
+            return Pair(decryptedKey, value)
+        } catch (e: Exception) {
+            Logger.logDecryptException(e, key)
+            return Pair(key, sharedPreferences.getString(key, "") ?: "")
+        }
+
     }
 
 
