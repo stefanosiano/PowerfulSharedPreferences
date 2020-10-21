@@ -289,7 +289,7 @@ object Prefs {
      * @param prefName SharedPreferences file name. If null it uses the default preferences file
      * @return An instance of PowerfulPreference
      */
-    fun <T> newPref(key: String, value: T, prefName: String?): PowerfulPreference<T> {
+    fun <T> newPref(key: String, value: T, prefName: String? = null): PowerfulPreference<T> {
 
         val preference: PowerfulPreference<T> = when (value) {
             is Int -> IPreference(key, value as Int, prefName) as PowerfulPreference<T>
@@ -319,7 +319,7 @@ object Prefs {
      * @param prefName SharedPreferences file name. If null it uses the default preferences file
      * @return An instance of PowerfulPreference
      */
-    fun <T> newPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T: PrefObj {
+    fun <T> newPref(clazz: Class<T>, key: String, value: T, prefName: String? = null): PowerfulPreference<T> where T: PrefObj {
         val preference: PowerfulPreference<T> = ObjPreference(clazz, key, value, prefName)
         Logger.logNewPref(key, preference.toPreferences(value), preference.getPrefClass())
         return preference
@@ -338,7 +338,7 @@ object Prefs {
      * @param prefName SharedPreferences file name. If null it uses the default preferences file
      * @return An instance of PowerfulPreference
      */
-    fun <T> newEnumPref(clazz: Class<T>, key: String, value: T, prefName: String?): PowerfulPreference<T> where T:Enum<T> {
+    fun <T> newEnumPref(clazz: Class<T>, key: String, value: T, prefName: String? = null): PowerfulPreference<T> where T:Enum<T> {
         val preference: PowerfulPreference<T> = EnumPreference(clazz, key, value, prefName)
         Logger.logNewPref(key, preference.toPreferences(value), preference.getPrefClass())
         return preference
