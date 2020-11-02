@@ -464,7 +464,7 @@ object Prefs {
      * @see android.content.SharedPreferences.Editor.clear
      */
     @Synchronized
-    fun clear(preferencesFileName: String?): SharedPreferences.Editor {
+    fun clear(preferencesFileName: String? = null): SharedPreferences.Editor {
         val keySet = HashSet<String>()
 
         if(mCacheEnabled) {
