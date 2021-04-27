@@ -24,11 +24,12 @@ public class MyApplication extends Application {
         ...
         
 
-        Prefs.init(this)
-                .setLogLevel(if (BuildConfig.DEBUG) Prefs.Builder.LOG_VALUES else Prefs.Builder.LOG_DISABLED)
-                .setDefaultPrefs("prefs", Context.MODE_PRIVATE)
-                .setCrypter("PermissionRuler", null)
-                .build()
+        Prefs.init(this) {
+            .setLogLevel(if (BuildConfig.DEBUG) Prefs.Builder.LOG_VALUES else Prefs.Builder.LOG_DISABLED)
+            .setDefaultPrefs("prefs", Context.MODE_PRIVATE)
+            .setCrypter("PermissionRuler", null)
+            .build()
+        }
     }
 }  
 ```

@@ -27,15 +27,16 @@ object Prefs {
     private var onPreferenceSet: ((pref: PowerfulPreference<*>?, key: String, value: String, cryptedKey: String, cryptedValue: String, preferenceFileName: String) -> Unit)? = null
 
 
-    /**
-     * Initialize the Prefs class to keep a reference to the SharedPreference for this application.
-     * The SharedPreference will use the package name of the application as the Key.
-     *
-     * @param context Context object
-     */
+    /** Initialize the Prefs class for this application. Its package name will be used as the default file name if not set */
+    @Deprecated("Use init(Context, Builder.() -> Unit) instead, or call this method in a synchronized{} block")
     fun init(context: Context): Builder {
         return Builder(context.applicationContext)
     }
+
+    /** Initialize the Prefs class for this application. Its package name will be used as the default file name if not set */
+    fun init(context: Context, f: Builder.() -> Unit) { synchronized(this) {
+        f(Builder(context.applicationContext))
+    } }
 
     class Builder internal constructor(context: Context) {
 
@@ -174,6 +175,7 @@ object Prefs {
 
                         if (encryptedSalt.isNullOrEmpty()) {
                             encryptedSalt = SecureRandom().nextLong().toString() + ""
+                            Logger.logCreateSalt(encryptedSalt)
                             val encryptedSaltKey = c.encrypt("key") + "!"
                             val encryptedSaltValue = c.encrypt(encryptedSalt)
                             prefs.edit().putString(encryptedSaltKey, encryptedSaltValue).apply()

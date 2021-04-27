@@ -26,6 +26,8 @@ internal object Logger {
 
     fun logChangeCrypter() = log(LOG_VERBOSE, 1, "Crypter was changed, and all values have been encrypted")
 
+    fun logCreateSalt(salt: String) = log(LOG_VALUES, 1, "Creating a new salt for the default crypter: $salt")
+
     fun logTerminate() = log(LOG_VERBOSE, 1, "Terminating and releasing all objects in memory")
 
     fun logNewPref(key: String, defaultValue: String, classs: Class<*>?) = log(LOG_VERBOSE, 1, "Created preference $key : $defaultValue (${classs?.simpleName ?: "unknown"})")
