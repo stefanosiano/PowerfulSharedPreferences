@@ -28,15 +28,9 @@ object Prefs {
 
 
     /** Initialize the Prefs class for this application. Its package name will be used as the default file name if not set */
-    @Deprecated("Use init(Context, Builder.() -> Unit) instead, or call this method in a synchronized{} block")
-    fun init(context: Context): Builder {
+    @Synchronized fun init(context: Context): Builder {
         return Builder(context.applicationContext)
     }
-
-    /** Initialize the Prefs class for this application. Its package name will be used as the default file name if not set */
-    fun init(context: Context, f: Builder.() -> Unit) { synchronized(this) {
-        f(Builder(context.applicationContext))
-    } }
 
     class Builder internal constructor(context: Context) {
 

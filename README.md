@@ -24,12 +24,11 @@ public class MyApplication extends Application {
         ...
         
 
-        Prefs.init(this) {
-            setLogLevel(if (BuildConfig.DEBUG) Prefs.Builder.LOG_VALUES else Prefs.Builder.LOG_DISABLED)
-            setDefaultPrefs("prefs", Context.MODE_PRIVATE)
-            setCrypter("PermissionRuler", null)
-            build()
-        }
+        Prefs.init(this)
+                .setLogLevel(if (BuildConfig.DEBUG) Prefs.Builder.LOG_VALUES else Prefs.Builder.LOG_DISABLED)
+                .setDefaultPrefs("prefs", Context.MODE_PRIVATE)
+                .setCrypter("CrypterPass", null)
+                .build()
     }
 }  
 ```
@@ -140,7 +139,7 @@ Gradle
   
 ```
 dependencies {
-    implementation 'io.github.stefanosiano.powerfullibraries:sharedpreferences:1.0.16' // Put this line into module's build.gradle
+    implementation 'io.github.stefanosiano.powerfullibraries:sharedpreferences:1.0.17' // Put this line into module's build.gradle
     implementation 'io.github.stefanosiano.powerfullibraries:sharedpreferences_livedata:1.0.4' // Put this line if you want to use a preference as a live data
 }
 ```
