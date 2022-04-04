@@ -47,7 +47,7 @@ internal class DefaultCrypter(private val pass: String, private val salt: ByteAr
                     .encoded, "AES")
         } catch (e: Exception) {
             e.printStackTrace()
-            throw RuntimeException("KeyGeneration Exception")
+            throw IllegalArgumentException("KeyGeneration Exception")
         }
     }
 
@@ -64,39 +64,39 @@ internal class DefaultCrypter(private val pass: String, private val salt: ByteAr
             return c
         } catch (e: Exception) {
             e.printStackTrace()
-            throw RuntimeException("Cipher initialization Exception")
+            throw IllegalArgumentException("Cipher initialization Exception")
         }
     }
 
 
     @Synchronized
-    @Throws(RuntimeException::class)
-    override fun encrypt(mString: String?): String {
+    @Throws(IllegalArgumentException::class)
+    override fun encrypt(value: String?): String {
 
-        if (mString == null || mString.isEmpty())
-            throw RuntimeException("[Encrypt] Empty string")
+        if (value == null || value.isEmpty())
+            throw IllegalArgumentException("[Encrypt] Empty string")
 
         val enCipher = initCipher(Cipher.ENCRYPT_MODE)
 
         try {
 
             // Encrypt the byte data of the string
-            val encrypted = enCipher.doFinal(mString.toByteArray(charset(CHARSET_UTF8)))
+            val encrypted = enCipher.doFinal(value.toByteArray(charset(CHARSET_UTF8)))
             return String(Base64.encode(encrypted, Base64.NO_WRAP), charset(CHARSET_UTF8))
 
         } catch (e: Exception) {
             e.printStackTrace()
-            throw RuntimeException("[Encrypt] Exception: " + e.message)
+            throw IllegalArgumentException("[Encrypt] Exception: " + e.message)
         }
 
     }
 
     @Synchronized
-    @Throws(RuntimeException::class)
+    @Throws(IllegalArgumentException::class)
     override fun decrypt(mString: String?): String {
 
         if (mString == null || mString.isEmpty())
-            throw RuntimeException("[Decrypt] Empty string")
+            throw IllegalArgumentException("[Decrypt] Empty string")
 
         val deCipher = initCipher(Cipher.DECRYPT_MODE)
 
@@ -107,7 +107,7 @@ internal class DefaultCrypter(private val pass: String, private val salt: ByteAr
 
         } catch (e: Exception) {
             e.printStackTrace()
-            throw RuntimeException("[Decrypt] Exception: " + e.message)
+            throw IllegalArgumentException("[Decrypt] Exception: " + e.message)
         }
     }
 

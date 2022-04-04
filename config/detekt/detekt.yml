@@ -1,9 +1,9 @@
 complexity:
   TooManyFunctions:
-    active: false
+    active: true
     ignorePrivate: true
   LongParameterList:
-    active: false
+    active: true
   ComplexMethod:
     active: false
   LongMethod:

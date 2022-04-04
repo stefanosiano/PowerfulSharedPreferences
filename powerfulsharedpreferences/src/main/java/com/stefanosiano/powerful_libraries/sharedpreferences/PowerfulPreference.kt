@@ -3,6 +3,7 @@ package com.stefanosiano.powerful_libraries.sharedpreferences
 import kotlin.reflect.KProperty
 
 
+@Suppress("TooManyFunctions")
 abstract class PowerfulPreference<T> (
 
         /** Returns the key of the preference  */
