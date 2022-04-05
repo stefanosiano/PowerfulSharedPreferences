@@ -1,7 +1,7 @@
 plugins {
-    id("com.android.library")
-    id("kotlin-android")
-//    id(Deps.detektPlugin)
+    id(Deps.androidLibrary)
+    id(Deps.detektPlugin)
+    kotlin("android")
 }
 
 ext {
@@ -32,14 +32,15 @@ dependencies {
     implementation(Deps.kotlinCoroutinesCore)
     implementation ("androidx.lifecycle:lifecycle-extensions:2.2.0") //ViewModel and LiveData
     implementation ("io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.14") //PowerfulSharedPreferences
+    detektPlugins(Deps.detektKtlintDependency)
 }
 
 apply("${rootProject.projectDir}/sonatype-publish.gradle")
 
-//detekt {
-//    toolVersion = "1.19.0"
-//    config = files("${rootDir}/config/detekt/detekt.yml")
-////    allRules = true
-//    buildUponDefaultConfig = true
-//    autoCorrect = false
-//}
+detekt {
+    toolVersion = Deps.detektPluginVersion
+    config = files("${rootDir}/config/detekt/detekt.yml")
+//    allRules = true
+    buildUponDefaultConfig = true
+    autoCorrect = false
+}

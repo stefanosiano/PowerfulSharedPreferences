@@ -5,7 +5,6 @@ import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Compa
 import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_VALUES
 import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_VERBOSE
 
-
 internal object Logger {
 
     private var mLogLevel = 0
@@ -13,7 +12,7 @@ internal object Logger {
 
     fun setLevel(logLevel: Int) { mLogLevel = logLevel }
 
-    fun logD(m: String, level: Int= LOG_VALUES) {
+    fun logD(m: String, level: Int = LOG_VALUES) {
         if (mLogLevel >= level) {
             Log.d(mTag, m)
         }

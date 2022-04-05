@@ -1,7 +1,7 @@
 plugins {
-    id ("com.android.library")
-    id ("kotlin-android")
+    id(Deps.androidLibrary)
     id(Deps.detektPlugin)
+    kotlin("android")
 }
 
 ext {
@@ -31,12 +31,13 @@ android {
 dependencies {
     implementation(Deps.kotlinStdLib)
     implementation(Deps.kotlinCoroutinesCore)
+    detektPlugins(Deps.detektKtlintDependency)
 }
 
 apply("${rootProject.projectDir}/sonatype-publish.gradle")
 
 detekt {
-    toolVersion = "1.19.0"
+    toolVersion = Deps.detektPluginVersion
     config = files("${rootDir}/config/detekt/detekt.yml")
 //    allRules = true
     buildUponDefaultConfig = true

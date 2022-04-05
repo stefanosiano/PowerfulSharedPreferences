@@ -5,39 +5,77 @@ complexity:
   LongParameterList:
     active: true
   ComplexMethod:
-    active: false
+    active: true
   LongMethod:
-    active: false
+    active: true
   NestedBlockDepth:
-    active: false
+    active: true
   ComplexCondition:
-    active: false
+    active: true
+  StringLiteralDuplication:
+    active: true
+    threshold: 4
 
 style:
   # Numbers are used for enums and blur algorithms matrices
   MagicNumber:
-    active: false
+    active: true
   WildcardImport:
-    active: false
+    active: true
   NewLineAtEndOfFile:
-    active: false
+    active: true
   MaxLineLength:
-    active: false
+    active: true
   ReturnCount:
-    active: false
+    active: true
   UnusedPrivateMember:
-    active: false
+    active: true
+  UnnecessaryParentheses:
+    active: true
+  MandatoryBracesIfStatements:
+    active: true
+  MandatoryBracesLoops:
+    active: true
+  UseIfInsteadOfWhen:
+    active: true
+  ExpressionBodySyntax:
+    active: true
+  ClassOrdering:
+    active: true
+  CollapsibleIfStatements:
+    active: true
+  SpacingBetweenPackageAndImports:
+    active: true
 
 empty-blocks:
   EmptyFunctionBlock:
+    active: true
+    ignoreOverridden: true
+
+comments:
+  CommentOverPrivateProperty:
     active: false
+  CommentOverPrivateFunction:
+    active: false
+  EndOfSentenceFormat:
+    active: true
+  UndocumentedPublicClass:
+    active: true
+  UndocumentedPublicFunction:
+    active: true
+  UndocumentedPublicProperty:
+    active: true
 
 exceptions:
   TooGenericExceptionCaught:
-    active: false
+    active: true
   PrintStackTrace:
-    active: false
+    active: true
   SwallowedException:
+    active: true
+
+potential-bugs:
+  LateinitUsage:
     active: false
 
 naming:
@@ -45,6 +83,33 @@ naming:
     active: true
     packagePattern: '[a-z]+(\.[a-z][A-Za-z0-9_]*)*'
   ConstructorParameterNaming:
-    active: false
+    active: true
   VariableNaming:
+    active: true
+  FunctionMaxLength:
+    active: true
+
+formatting:
+  # We already have MaxLineLength from detekt, which is suppressed in few cases. This rule cannot be suppressed with annotations
+  MaximumLineLength:
+    active: false
+  # We already have PackageName from detekt
+  PackageName:
+    active: false
+  MultiLineIfElse:
+    active: true
+    autoCorrect: true
+  NoEmptyFirstLineInMethodBlock:
+    active: true
+    autoCorrect: true
+  SpacingBetweenDeclarationsWithComments:
+    active: true
+    autoCorrect: true
+  ArgumentListWrapping:
+    active: true
+    autoCorrect: false
+  NoUnusedImports:
+    active: true
+    autoCorrect: true
+  ParameterListWrapping:
     active: false

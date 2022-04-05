@@ -10,7 +10,7 @@ import java.math.BigDecimal
 
 var preference1 by Prefs.newPref("p3", 1)
 val preference2 = Prefs.newPref("p4", 1.0)
-var preference3 by Prefs.newEnumPref(MyEnum::class.java, "p4", MyEnum.enum1)
+var preference3 by Prefs.newEnumPref(MyEnum::class.java, "p4", MyEnum.Enum1)
 
 class MainActivityKotlin : Activity() {
 
@@ -18,7 +18,7 @@ class MainActivityKotlin : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        preference3 = MyEnum.enum2
+        preference3 = MyEnum.Enum2
 
         Log.e("ASD2", preference1.toString())
         Log.e("ASD2", preference2.get().toString())
@@ -38,5 +38,5 @@ class MainActivityKotlin : Activity() {
 }
 
 enum class MyEnum {
-    enum1, enum2
+    Enum1, Enum2
 }

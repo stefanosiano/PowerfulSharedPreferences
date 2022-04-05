@@ -80,7 +80,7 @@ Finally, you can provide custom implementations of the preferences like:
       constructor(key: String, defaultValue: BigDecimal, prefName: String): super(key, defaultValue, prefName)
       constructor(key: String, defaultValue: BigDecimal): super(key, defaultValue)
       override fun getPrefClass(): Class<*> = BigDecimal::class.java
-      override fun parse(s: String): BigDecimal = if( s.isEmpty() ) BigDecimal.ZERO else BigDecimal(s)
+      override fun parse(s: String): BigDecimal = if ( s.isEmpty() ) BigDecimal.ZERO else BigDecimal(s)
       override fun toPreferences(value: T): String = toString()
   }
 ```
@@ -111,7 +111,7 @@ Basic safety is provided through obfuscation.
 *Note that whatever is on the client can be cracked, so don't put secrets inside the preferences, even with obfuscation.*  
   
 Through Prefs.setDefaultCrypter(crypter) method, you can provide your own encryption implementation, in order to have more control over it.  
-If you just want an easy encryption method, just use Prefs.setDefaultCrypter(password, salt). Default crypter uses AES algorithm and then encodes/decodes data in base64. If passed salt is null, a salt will be automatically generated, using SecureRandom, and then will be saved inside the preference file itself (after being encypted with the given password). It will be saved with a key ending with an exclamation mark, since it's not in the Base64 charset, ensuring its key will always be unique.  
+If you just want an easy encryption method, just use Prefs.setDefaultCrypter(password, salt). Default crypter uses AES algorithm and then encodes/decodes data in base64. If passed salt is null, a salt will be automatically generated, using SecureRandom, and then will be saved inside the preference file itself (after being encrypted with the given password). It will be saved with a key ending with an exclamation mark, since it's not in the Base64 charset, ensuring its key will always be unique.  
   
 Both the keys and the values will be encrypted. Also, the encrypted values will contain the encrypted key inside, to avoid having the same value associated to multiple keys.  
   
