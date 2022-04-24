@@ -564,7 +564,8 @@ object Prefs {
 
         return try {
             val crypter = findCrypter(preferencesFileName)
-            val encryptedValue = sharedPreferences.getString(key, "")
+            val encryptedKey = crypter?.encrypt(key) ?: return ""
+            val encryptedValue = sharedPreferences.getString(encryptedKey, "")
 
             when {
                 crypter == null -> sharedPreferences.getString(key, "") ?: ""

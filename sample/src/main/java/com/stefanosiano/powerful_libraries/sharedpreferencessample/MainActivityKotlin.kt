@@ -8,9 +8,9 @@ import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs
 import java.math.BigDecimal
 
 
-var preference1 by Prefs.newPref("p3", 1)
-val preference2 = Prefs.newPref("p4", 1.0)
-var preference3 by Prefs.newEnumPref(MyEnum::class.java, "p4", MyEnum.Enum1)
+var preference1 by Prefs.newPref("p1", 1)
+val preference2 = Prefs.newPref("p2", 1.0)
+var preference3 by Prefs.newEnumPref(MyEnum::class.java, "p3", MyEnum.Enum1)
 
 class MainActivityKotlin : Activity() {
 
@@ -24,6 +24,7 @@ class MainActivityKotlin : Activity() {
         Log.e("ASD2", preference2.get().toString())
         preference1 = 2
         Prefs.put(preference2, 2.54)
+        Prefs.put("p1", 9)
         preference2.put(3.12)
         Log.e("ASD2", preference1.toString())
         Log.e("ASD2", preference2.get().toString())
