@@ -27,10 +27,21 @@ android {
     }
 }
 
-
 dependencies {
     implementation(Deps.kotlinStdLib)
     implementation(Deps.kotlinCoroutinesCore)
+
+    // todo check dependencies
+    testImplementation(Deps.kotlinTestJunit)
+    testImplementation(Deps.robolectric)
+    testImplementation(Deps.androidxCore)
+    testImplementation(Deps.androidxRunner)
+    testImplementation(Deps.androidxTestCoreKtx)
+    testImplementation(Deps.androidxTestRules)
+    testImplementation(Deps.androidxJunit)
+    testImplementation(Deps.androidxCoreKtx)
+    testImplementation(Deps.mockitoKotlin)
+
     detektPlugins(Deps.detektKtlintDependency)
 }
 

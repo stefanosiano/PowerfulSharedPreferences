@@ -21,4 +21,17 @@ object Deps {
 
     // Other libraries
     const val detektKtlintDependency = "io.gitlab.arturbosch.detekt:detekt-formatting:$detektPluginVersion"
+
+    // todo check dependencies
+    // Test libraries
+    private const val androidxTestVersion = "1.4.0"
+    const val kotlinTestJunit = "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
+    const val robolectric = "org.robolectric:robolectric:4.7.3"
+    const val androidxCore = "androidx.test:core:$androidxTestVersion"
+    const val androidxRunner = "androidx.test:runner:$androidxTestVersion"
+    const val androidxTestCoreKtx = "androidx.test:core-ktx:$androidxTestVersion"
+    const val androidxTestRules = "androidx.test:rules:$androidxTestVersion"
+    const val androidxJunit = "androidx.test.ext:junit:1.1.3"
+    const val androidxCoreKtx = "androidx.core:core-ktx:1.7.0"
+    const val mockitoKotlin = "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
 }

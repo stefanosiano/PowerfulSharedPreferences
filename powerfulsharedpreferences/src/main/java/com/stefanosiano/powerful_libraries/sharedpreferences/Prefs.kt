@@ -319,15 +319,21 @@ object Prefs {
 
     /**
      * Convenience method to easily create PowerfulPreferences.
-     * This works with any object implementing [PrefObj]
-     * It takes the [clazz] of the stored object, other then the [key], default [value] and [prefName].
+     * This works with any object, as long as [parse] and [toPreference] are provided.
+     * It takes the [key] of the preference, the default [value] to return in case of errors and the file [prefName].
      * If the [prefName] is null, the default preferences file will be used.
+     * If the [toPreference] is null, the [toString] method will be used.
      * For Enums, use [newEnumPref]
      *
      * Note: The return type is inferred from the value type
      */
-    fun <T : PrefObj> newPref(clazz: Class<T>, key: String, value: T, prefName: String? = null): PowerfulPreference<T> {
-        val preference: PowerfulPreference<T> = ObjPreference(clazz, key, value, prefName)
+    fun <T: Any> newPref(
+        key: String, value: T,
+        prefName: String? = null,
+        parse: (s: String) -> T,
+        toPreference: (t: T) -> String = { it.toString() }
+    ): PowerfulPreference<T> {
+        val preference: PowerfulPreference<T> = ObjPreference(key, value, prefName, parse, toPreference)
         Logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
         return preference
     }
@@ -335,14 +341,14 @@ object Prefs {
     /**
      * Convenience method to easily create PowerfulPreferences.
      * This works only with Enums
-     * It takes the enum [clazz], other then the [key], default [value] and [prefName].
+     * It takes the [key] of the preference, the default [value] to return in case of errors and the file [prefName].
      * If the [prefName] is null, the default preferences file will be used.
      *
      * Note: For other types refer to [newPref]
      */
-    fun <T : Enum<T>> newEnumPref(clazz: Class<T>, key: String, value: T, prefName: String? = null):
+    fun <T : Enum<T>> newEnumPref(key: String, value: T, prefName: String? = null):
         PowerfulPreference<T> {
-        val preference: PowerfulPreference<T> = EnumPreference(clazz, key, value, prefName)
+        val preference: PowerfulPreference<T> = EnumPreference(key, value, prefName)
         Logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
         return preference
     }
@@ -360,7 +366,7 @@ object Prefs {
     operator fun <T> get(pref: PowerfulPreference<T>): T {
         if (mCacheEnabled && cacheMap.containsKey(pref.getCacheMapKey())) {
             val value = cacheMap[pref.getCacheMapKey()] as T
-            Logger.logD("Retrieved from cache ${pref.key} : ${pref.toPreferences(value)} (${pref.getClassName()}")
+            Logger.logD("Retrieved from cache ${pref.key} : ${pref.toPreferences(value)} (${pref.getClassName()})")
             return value
         }
 
