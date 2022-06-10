@@ -24,6 +24,7 @@ object Prefs {
     private val prefMap = HashMap<String, PrefContainer>()
     private val cacheMap = HashMap<String, Any?>()
     private val prefChangedCallbacks = ArrayList<(key: String, value: Any) -> Unit>()
+    private val logger = Logger.getInstance()
     private var onPreferenceSet: (
         (
             pref: PowerfulPreference<*>?,
@@ -146,12 +147,12 @@ object Prefs {
             powerfulPrefMap.clear()
             prefMap.values.forEach { it.build(context) }
 
-            Logger.setLevel(logLevel)
-            Logger.logV(
+            logger.setLevel(logLevel)
+            logger.logV(
                 "Initialized with default SharedPreferences $defaultPrefsName (obfuscation: ${mCrypter != null})"
             )
             for (prefContainer in prefMap.values) {
-                Logger.logV(
+                logger.logV(
                     "Additional SharedPreferences files: ${prefContainer.name} " +
                         "(obfuscation: ${mCrypter != null && prefContainer.useCrypter})"
                 )
@@ -186,7 +187,7 @@ object Prefs {
 
                 if (encryptedSalt.isNullOrEmpty()) {
                     encryptedSalt = SecureRandom().nextLong().toString() + ""
-                    Logger.logD("Creating a new salt for the default crypter: $salt")
+                    logger.logD("Creating a new salt for the default crypter: $salt")
                     val encryptedSaltKey = c.encrypt("key") + "!"
                     val encryptedSaltValue = c.encrypt(encryptedSalt)
                     prefs.edit().putString(encryptedSaltKey, encryptedSaltValue).apply()
@@ -242,7 +243,7 @@ object Prefs {
                         Triple(newKey, newVal, newCrypter?.encrypt(newVal) ?: newVal)
                 }
             } catch (e: IllegalArgumentException) {
-                Logger.logE(
+                logger.logE(
                     "Trying to change crypter, but got an error:\n${e.localizedMessage}\nNo values were changed!"
                 )
                 return
@@ -274,7 +275,7 @@ object Prefs {
         }
 
         mCrypter = newCrypter
-        Logger.logV("Crypter was changed, and all values have been encrypted")
+        logger.logV("Crypter was changed, and all values have been encrypted")
     }
 
     internal fun registerPreference(preference: PowerfulPreference<Any?>) {
@@ -313,7 +314,7 @@ object Prefs {
             else -> null
         } ?: throw IllegalArgumentException("Cannot understand preference type $value. Please, provide a valid class")
 
-        Logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
+        logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
         return preference
     }
 
@@ -334,7 +335,7 @@ object Prefs {
         toPreference: (t: T) -> String = { it.toString() }
     ): PowerfulPreference<T> {
         val preference: PowerfulPreference<T> = ObjPreference(key, value, prefName, parse, toPreference)
-        Logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
+        logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
         return preference
     }
 
@@ -349,7 +350,7 @@ object Prefs {
     fun <T : Enum<T>> newEnumPref(key: String, value: T, prefName: String? = null):
         PowerfulPreference<T> {
         val preference: PowerfulPreference<T> = EnumPreference(key, value, prefName)
-        Logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
+        logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
         return preference
     }
 
@@ -366,7 +367,7 @@ object Prefs {
     operator fun <T> get(pref: PowerfulPreference<T>): T {
         if (mCacheEnabled && cacheMap.containsKey(pref.getCacheMapKey())) {
             val value = cacheMap[pref.getCacheMapKey()] as T
-            Logger.logD("Retrieved from cache ${pref.key} : ${pref.toPreferences(value)} (${pref.getClassName()})")
+            logger.logD("Retrieved from cache ${pref.key} : ${pref.toPreferences(value)} (${pref.getClassName()})")
             return value
         }
 
@@ -374,23 +375,23 @@ object Prefs {
         val valueToReturn: T
 
         if (TextUtils.isEmpty(value)) {
-            Logger.logE(
+            logger.logE(
                 "No data found for key ${pref.key}. Returning default value: ${pref.toPreferences(pref.defaultValue)}"
             )
             valueToReturn = pref.defaultValue
         } else {
             valueToReturn = try {
                 val parsed = pref.parse(value)
-                Logger.logD("Retrieved ${pref.key} : $value (${pref.getClassName()})")
+                logger.logD("Retrieved ${pref.key} : $value (${pref.getClassName()})")
                 parsed
             } catch (e: NumberFormatException) {
-                Logger.logE(
+                logger.logE(
                     "Error trying to parse ${pref.key} : $value as ${pref.getClassName()}." +
                         "\n${e.localizedMessage}\nReturning default value: ${pref.toPreferences(pref.defaultValue)}"
                 )
                 pref.defaultValue
             } catch (ignored: Exception) {
-                Logger.logE(
+                logger.logE(
                     "Don't know how to parse ${pref.key} : '$value' as ${pref.getClassName()}. " +
                         "Returning default value: ${pref.toPreferences(pref.defaultValue)}"
                 )
@@ -422,7 +423,7 @@ object Prefs {
                 ?.filter { it.get()?.preferencesFileName == pref.preferencesFileName }
                 ?.forEach { it.get()?.callOnChange(value) }
         }
-        Logger.logD("Put ${pref.key} : ${pref.toPreferences(value)} (${pref.getClassName()})")
+        logger.logD("Put ${pref.key} : ${pref.toPreferences(value)} (${pref.getClassName()})")
         encryptAndPut(pref, pref.key, pref.toPreferences(value), pref.preferencesFileName)
 
         if (pref is DummyPreference) {
@@ -478,7 +479,7 @@ object Prefs {
 
         if (findCrypter(preference.preferencesFileName) == null) {
             found = sharedPreferences.contains(preference.key)
-            Logger.logD("Check existence of ${preference.key}: $found")
+            logger.logD("Check existence of ${preference.key}: $found")
             return found
         }
 
@@ -486,7 +487,7 @@ object Prefs {
             tryOr(preference.key) { findCrypter(preference.preferencesFileName)?.encrypt(preference.key) }
         )
 
-        Logger.logD("Check existence of ${preference.key}: $found")
+        logger.logD("Check existence of ${preference.key}: $found")
         return found
     }
 
@@ -511,7 +512,7 @@ object Prefs {
 //        prefChangedCallbacks.forEach { it.invoke(preference.key, preference.defaultValue as Any) }
 //        preference.callOnChange(preference.defaultValue)
 
-        Logger.logD("Clearing all the preferences")
+        logger.logD("Clearing all the preferences")
         val editor = findPref(preferencesFileName).edit()
         editor.clear().commit()
         if (preferencesFileName == null) cacheMap.clear()
@@ -524,7 +525,7 @@ object Prefs {
      * @see android.content.SharedPreferences.getAll
      */
     fun getAllEncrypted(preferencesFileName: String? = null): Map<String, *> {
-        Logger.logD("Retrieving all the preferences")
+        logger.logD("Retrieving all the preferences")
         return findPref(preferencesFileName).all ?: HashMap<String, Any>()
     }
 
@@ -534,7 +535,7 @@ object Prefs {
      * @see android.content.SharedPreferences.getAll
      */
     fun getAll(preferencesFileName: String? = null): Map<String, *> {
-        Logger.logD("Retrieving all the preferences")
+        logger.logD("Retrieving all the preferences")
         return findPref(preferencesFileName).all
             ?.map { getEncryptedAndDecrypt(it.key, preferencesFileName) }
             ?.toMap() ?: HashMap<String, Any>()
@@ -554,12 +555,12 @@ object Prefs {
                 else -> {
                     val decryptedKey = crypter.decrypt(key)
                     val value = crypter.decrypt(encryptedValue).replace(key, "")
-                    Logger.logV("Retrieved $decryptedKey : $value from $key : $encryptedValue")
+                    logger.logV("Retrieved $decryptedKey : $value from $key : $encryptedValue")
                     Pair(decryptedKey, value)
                 }
             }
         } catch (e: IllegalArgumentException) {
-            Logger.logE("Error decrypting $key \n${e.localizedMessage}")
+            logger.logE("Error decrypting $key \n${e.localizedMessage}")
             Pair(key, sharedPreferences.getString(key, "") ?: "")
         }
     }
@@ -579,12 +580,12 @@ object Prefs {
                 else -> {
                     val encryptedKey = crypter.encrypt(key)
                     val value = crypter.decrypt(encryptedValue).replace(encryptedKey, "")
-                    Logger.logV("Retrieved $key : $value from $encryptedKey : $encryptedValue")
+                    logger.logV("Retrieved $key : $value from $encryptedKey : $encryptedValue")
                     value
                 }
             }
         } catch (e: IllegalArgumentException) {
-            Logger.logE("Error decrypting $key \n${e.localizedMessage}")
+            logger.logE("Error decrypting $key \n${e.localizedMessage}")
             sharedPreferences.getString(key, "") ?: ""
         }
     }
@@ -621,9 +622,9 @@ object Prefs {
                 encryptedValue,
                 prefFileName ?: mDefaultName
             )
-            Logger.logV("Saving $key : ${value.trim()} as $encryptedKey : $encryptedValue")
+            logger.logV("Saving $key : ${value.trim()} as $encryptedKey : $encryptedValue")
         } catch (e: IllegalArgumentException) {
-            Logger.logE("Error encrypting $key : $value \n${e.localizedMessage}")
+            logger.logE("Error encrypting $key : $value \n${e.localizedMessage}")
         }
     }
 
