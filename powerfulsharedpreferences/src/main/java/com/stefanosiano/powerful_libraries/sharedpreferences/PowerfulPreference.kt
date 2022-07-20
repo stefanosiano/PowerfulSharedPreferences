@@ -43,7 +43,7 @@ abstract class PowerfulPreference<T> (
      * Returns the class of the value to save/retrieve. Used only for logs.
      * If null, logs will show 'Unknown' as object class.
      */
-    open fun getPrefClass(): Class<*>? = null
+    open fun getPrefClass(): Class<*>? = defaultValue?.let { it::class.java }
 
     /** Returns the data of the preference from a string. Exceptions are handled by the library itself. */
     abstract fun parse(s: String): T

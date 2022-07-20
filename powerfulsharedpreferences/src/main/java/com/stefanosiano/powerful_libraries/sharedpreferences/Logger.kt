@@ -5,15 +5,9 @@ import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Compa
 import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_VALUES
 import com.stefanosiano.powerful_libraries.sharedpreferences.Prefs.Builder.Companion.LOG_VERBOSE
 
-private const val mTag = "Prefs"
+private const val TAG = "Prefs"
 
 internal class Logger {
-
-    companion object {
-        private var logger = Logger()
-
-        fun getInstance(): Logger = logger
-    }
 
     private var mLogLevel = 0
 
@@ -21,19 +15,25 @@ internal class Logger {
 
     fun logD(m: String) {
         if (mLogLevel >= LOG_VALUES) {
-            Log.d(mTag, m)
+            Log.d(TAG, m)
         }
     }
 
     fun logV(m: String) {
         if (mLogLevel >= LOG_VERBOSE) {
-            Log.v(mTag, m)
+            Log.v(TAG, m)
         }
     }
 
     fun logE(m: String) {
         if (mLogLevel >= LOG_ERRORS) {
-            Log.e(mTag, m)
+            Log.e(TAG, m)
         }
+    }
+
+    companion object {
+        private var mLogger = Logger()
+
+        fun getInstance(): Logger = mLogger
     }
 }

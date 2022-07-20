@@ -1,9 +1,9 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 internal class PrefContainerTest : BaseTest() {
 
@@ -14,6 +14,6 @@ internal class PrefContainerTest : BaseTest() {
         assertNull(prefContainer.sharedPreferences)
         prefContainer.build(context)
         assertNotNull(prefContainer.sharedPreferences)
-        assertTrue { prefContainer.sharedPreferences == context.applicationContext.getSharedPreferences("name", 0) }
+        assertEquals(prefContainer.sharedPreferences, context.applicationContext.getSharedPreferences("name", 0))
     }
 }

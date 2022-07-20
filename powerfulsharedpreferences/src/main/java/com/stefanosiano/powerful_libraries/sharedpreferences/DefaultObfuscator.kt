@@ -14,11 +14,11 @@ private const val LENGTH_KEY = 128
 private const val ITERATION = 16
 
 /**
- * Crypter that handles encryption of SharedPreferences values based on [pass] and [salt].
+ * Obfuscator that handles obfuscation of SharedPreferences values based on [pass] and [salt].
  * It uses AES algorithm and then encode/decode data in base64.
  */
 @Suppress("TooGenericExceptionCaught")
-internal class DefaultCrypter(private val pass: String, private val salt: ByteArray) : Crypter {
+internal class DefaultObfuscator(private val pass: String, private val salt: ByteArray) : Obfuscator {
 
     private val key: Key
 
@@ -56,37 +56,37 @@ internal class DefaultCrypter(private val pass: String, private val salt: ByteAr
 
     @Synchronized
     @Throws(IllegalArgumentException::class)
-    override fun encrypt(value: String?): String {
+    override fun obfuscate(value: String?): String {
         if (value == null || value.isEmpty()) {
-            throw IllegalArgumentException("[Encrypt] Empty string")
+            return ""
         }
 
         val enCipher = initCipher(Cipher.ENCRYPT_MODE)
 
         try {
-            // Encrypt the byte data of the string
-            val encrypted = enCipher.doFinal(value.toByteArray(charset(CHARSET_UTF8)))
-            return String(Base64.encode(encrypted, Base64.NO_WRAP), charset(CHARSET_UTF8))
+            // Obfuscate the byte data of the string
+            val obfuscated = enCipher.doFinal(value.toByteArray(charset(CHARSET_UTF8)))
+            return String(Base64.encode(obfuscated, Base64.NO_WRAP), charset(CHARSET_UTF8))
         } catch (e: Exception) {
-            throw IllegalArgumentException("[Encrypt] Exception:", e)
+            throw IllegalArgumentException("[Obfuscate] Exception:", e)
         }
     }
 
     @Synchronized
     @Throws(IllegalArgumentException::class)
-    override fun decrypt(value: String?): String {
+    override fun deobfuscate(value: String?): String {
         if (value == null || value.isEmpty()) {
-            throw IllegalArgumentException("[Decrypt] Empty string")
+            return ""
         }
 
         val deCipher = initCipher(Cipher.DECRYPT_MODE)
 
         try {
-            // Decrypt the byte data of the encrypted string
-            val decrypted = Base64.decode(value.toByteArray(charset(CHARSET_UTF8)), Base64.NO_WRAP)
-            return String(deCipher.doFinal(decrypted))
+            // Deobfuscates the byte data of the obfuscated string
+            val decoded = Base64.decode(value.toByteArray(charset(CHARSET_UTF8)), Base64.NO_WRAP)
+            return String(deCipher.doFinal(decoded))
         } catch (e: Exception) {
-            throw IllegalArgumentException("[Decrypt] Exception: ", e)
+            throw IllegalArgumentException("[Deobfuscate] Exception: ", e)
         }
     }
 }
