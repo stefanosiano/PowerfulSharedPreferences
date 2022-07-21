@@ -18,11 +18,11 @@ ext {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 32
 
     defaultConfig {
         minSdk = 14
-        targetSdk = 30
+        targetSdk = 32
         consumerProguardFiles("psp-proguard-rules.txt")
     }
 }

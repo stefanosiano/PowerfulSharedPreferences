@@ -20,6 +20,3 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.stefanosiano.powerfullibraries.sharedpreferences.Prefs { *; }
--keep class com.stefanosiano.powerfullibraries.sharedpreferences.Logger { *; }
-

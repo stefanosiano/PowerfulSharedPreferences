@@ -290,7 +290,7 @@ internal class PrefsTest : BaseTest() {
     }
 
     @Test
-    fun getAllObfuscatedReturnsObfuscatedkeysAndValues() {
+    fun getAllObfuscatedReturnsObfuscatedKeysAndValues() {
         val c = fixture.oldObfuscator
         assertEquals(emptyMap<String, Any>(), Prefs.getAllObfuscated())
         fixture.prefIntDef.put(2)

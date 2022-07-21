@@ -1,5 +1,6 @@
 plugins {
     id(Deps.androidApplication)
+    id(Deps.detektPlugin)
     kotlin("android")
 }
 
@@ -18,10 +19,12 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
@@ -37,4 +40,14 @@ dependencies {
     implementation(Deps.constraintLayout)
     implementation(Deps.kotlinStdLib)
     implementation(Deps.kotlinCoroutinesCore)
+
+    detektPlugins(Deps.detektKtlintDependency)
+}
+
+detekt {
+    toolVersion = Deps.detektPluginVersion
+    config = files("${rootDir}/config/detekt/detekt.yml")
+//    allRules = true
+    buildUponDefaultConfig = true
+    autoCorrect = false
 }

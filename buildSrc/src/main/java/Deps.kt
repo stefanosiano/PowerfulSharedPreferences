@@ -1,5 +1,5 @@
 object Deps {
-    private const val agpVersion = "7.0.4"
+    private const val agpVersion = "7.2.1"
     private const val kotlinVersion = "1.6.10"
     private const val coroutinesVersion = "1.5.1"
     const val detektPluginVersion = "1.19.0"
@@ -22,7 +22,6 @@ object Deps {
     // Other libraries
     const val detektKtlintDependency = "io.gitlab.arturbosch.detekt:detekt-formatting:$detektPluginVersion"
 
-    // todo check dependencies
     // Test libraries
     private const val androidxTestVersion = "1.4.0"
     const val kotlinTestJunit = "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion"
