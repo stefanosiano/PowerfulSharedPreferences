@@ -1,9 +1,9 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
 import android.content.Context
-import org.junit.Test
 import java.math.BigDecimal
 import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

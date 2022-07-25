@@ -1,6 +1,6 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
-import org.junit.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull

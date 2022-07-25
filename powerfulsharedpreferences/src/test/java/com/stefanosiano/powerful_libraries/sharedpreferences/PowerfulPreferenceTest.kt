@@ -1,8 +1,8 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
 import android.content.Context
-import org.junit.Test
 import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PowerfulPreferenceTest : BaseTest() {
