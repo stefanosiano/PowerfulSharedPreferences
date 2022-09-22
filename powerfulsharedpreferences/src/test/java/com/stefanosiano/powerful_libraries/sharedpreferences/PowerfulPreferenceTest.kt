@@ -94,24 +94,24 @@ class PowerfulPreferenceTest : BaseTest() {
 
     @Test
     fun getAndPut() {
-        assertEquals("", Prefs.get(fixture.prefString.key, fixture.prefString.preferencesFileName))
-        assertEquals("default value", Prefs.get(fixture.prefString))
+        assertEquals("", Prefs[fixture.prefString.key, fixture.prefString.preferencesFileName])
+        assertEquals("default value", Prefs[fixture.prefString])
         assertEquals("default value", fixture.prefString.get())
         assertEquals(4, fixture.prefInt.get())
         Prefs.put(fixture.prefString, "first")
-        assertEquals("first", Prefs.get(fixture.prefString.key, fixture.prefString.preferencesFileName))
-        assertEquals("first", Prefs.get(fixture.prefString))
+        assertEquals("first", Prefs[fixture.prefString.key, fixture.prefString.preferencesFileName])
+        assertEquals("first", Prefs[fixture.prefString])
         assertEquals("first", fixture.prefString.get())
         assertEquals(4, fixture.prefInt.get())
         Prefs.put(fixture.prefString.key, "second", fixture.prefString.preferencesFileName)
         Prefs.put(fixture.prefInt.key, 12, fixture.prefInt.preferencesFileName)
-        assertEquals("second", Prefs.get(fixture.prefString.key, fixture.prefString.preferencesFileName))
-        assertEquals("second", Prefs.get(fixture.prefString))
+        assertEquals("second", Prefs[fixture.prefString.key, fixture.prefString.preferencesFileName])
+        assertEquals("second", Prefs[fixture.prefString])
         assertEquals("second", fixture.prefString.get())
         assertEquals(12, fixture.prefInt.get())
         Prefs.put(fixture.prefInt.key, 4)
-        assertEquals("4", Prefs.get(fixture.prefInt.key, fixture.prefInt.preferencesFileName))
-        assertEquals(4, Prefs.get(fixture.prefInt))
+        assertEquals("4", Prefs[fixture.prefInt.key, fixture.prefInt.preferencesFileName])
+        assertEquals(4, Prefs[fixture.prefInt])
         assertEquals(4, fixture.prefInt.get())
     }
 }

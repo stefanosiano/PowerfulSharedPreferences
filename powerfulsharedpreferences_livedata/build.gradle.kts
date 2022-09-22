@@ -31,7 +31,7 @@ dependencies {
     implementation(Deps.kotlinStdLib)
     implementation(Deps.kotlinCoroutinesCore)
     implementation ("androidx.lifecycle:lifecycle-extensions:2.2.0") //ViewModel and LiveData
-    implementation ("io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.14") //PowerfulSharedPreferences
+    implementation ("io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.19") //PowerfulSharedPreferences
     detektPlugins(Deps.detektKtlintDependency)
 }
 

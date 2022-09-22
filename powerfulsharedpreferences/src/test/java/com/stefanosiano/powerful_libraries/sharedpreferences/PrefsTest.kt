@@ -23,7 +23,7 @@ internal class PrefsTest : BaseTest() {
         val oldObfuscator = DefaultObfuscator("pass", "salt".toByteArray())
         val newObfuscator = DefaultObfuscator("newpass", "newsalt".toByteArray())
     }
-    private enum class MyEnum { a, b, c }
+    private enum class MyEnum { A, B, C }
 
     private lateinit var fixture: Fixture
 
@@ -49,9 +49,9 @@ internal class PrefsTest : BaseTest() {
         val oldRawKey2 = preferences.keys.last()
         val oldRawValue2 = preferences.values.last()
         Prefs.changeObfuscator(null)
-        assertEquals("value", Prefs.get("key"))
-        assertEquals("value2", Prefs.get(fixture.prefStringAlt))
-        assertEquals(10, Prefs.get(fixture.prefIntDef))
+        assertEquals("value", Prefs["key"])
+        assertEquals("value2", Prefs[fixture.prefStringAlt])
+        assertEquals(10, Prefs[fixture.prefIntDef])
         val newPreferences = Prefs.getAllObfuscated()
         val newRawKey = newPreferences.keys.first()
         val newRawValue = newPreferences.values.first()
@@ -78,9 +78,9 @@ internal class PrefsTest : BaseTest() {
         val oldRawKey2 = preferences.keys.last()
         val oldRawValue2 = preferences.values.last()
         Prefs.changeObfuscator(fixture.newObfuscator)
-        assertEquals("value", Prefs.get("key"))
-        assertEquals("value2", Prefs.get(fixture.prefStringAlt))
-        assertEquals(10, Prefs.get(fixture.prefIntDef))
+        assertEquals("value", Prefs["key"])
+        assertEquals("value2", Prefs[fixture.prefStringAlt])
+        assertEquals(10, Prefs[fixture.prefIntDef])
         val newPreferences = Prefs.getAllObfuscated()
         val newRawKey = newPreferences.keys.first()
         val newRawValue = newPreferences.values.first()
@@ -202,25 +202,25 @@ internal class PrefsTest : BaseTest() {
 
     @Test
     fun newEnumPref() {
-        val enumPref1 = EnumPreference("k", MyEnum.a, null)
-        val enumPref2 = EnumPreference("k", MyEnum.a, fixture.altPrefFileName)
-        assertPrefEquals(enumPref1, Prefs.newEnumPref("k", MyEnum.a))
-        assertPrefEquals(enumPref2, Prefs.newEnumPref("k", MyEnum.a, fixture.altPrefFileName))
+        val enumPref1 = EnumPreference("k", MyEnum.A, null)
+        val enumPref2 = EnumPreference("k", MyEnum.A, fixture.altPrefFileName)
+        assertPrefEquals(enumPref1, Prefs.newEnumPref("k", MyEnum.A))
+        assertPrefEquals(enumPref2, Prefs.newEnumPref("k", MyEnum.A, fixture.altPrefFileName))
     }
 
     @Test
     fun getReturnsDefaultValueIfNotExists() {
         assertFalse(Prefs.contains(fixture.prefStringAlt))
-        assertEquals(fixture.prefStringAlt.defaultValue, Prefs.get(fixture.prefStringAlt))
+        assertEquals(fixture.prefStringAlt.defaultValue, Prefs[fixture.prefStringAlt])
     }
 
     @Test
     fun putAndGet() {
         Prefs.put(fixture.prefStringAlt, "new value")
-        assertEquals("new value", Prefs.get(fixture.prefStringAlt))
+        assertEquals("new value", Prefs[fixture.prefStringAlt])
         Prefs.put(fixture.prefStringAlt.key, "new value2", fixture.prefStringAlt.preferencesFileName)
-        assertEquals("new value2", Prefs.get(fixture.prefStringAlt))
-        assertEquals("new value2", Prefs.get(fixture.prefStringAlt.key, fixture.prefStringAlt.preferencesFileName))
+        assertEquals("new value2", Prefs[fixture.prefStringAlt])
+        assertEquals("new value2", Prefs[fixture.prefStringAlt.key, fixture.prefStringAlt.preferencesFileName])
     }
 
     @Test

@@ -170,7 +170,7 @@ object Prefs {
             logger.setLevel(logLevel)
             logger.logV("Initialized with default SharedPreferences $defaultPrefsName")
 
-            prefMap.put(defaultPrefsName, defaultPrefContainer)
+            prefMap[defaultPrefsName] = defaultPrefContainer
             preInitPrefFileNames.filter { !prefMap.containsKey(it) }.forEach {
                 val useObfuscator = mObfuscator != null
                 prefMap[it] = PrefContainer(useObfuscator, it, Context.MODE_PRIVATE)
@@ -211,13 +211,14 @@ object Prefs {
     private fun generateDefaultObfuscator(prefs: SharedPreferences, pass: String, saltPassed: ByteArray?): Obfuscator {
         var salt = saltPassed
         if (salt == null) {
+            var obfuscatedSalt: String? = ""
             try {
                 val c = DefaultObfuscator(pass, pass.toByteArray())
-                var obfuscatedSalt = prefs.getString(c.obfuscate("key") + "!", "")
+                obfuscatedSalt = prefs.getString(c.obfuscate("key") + "!", "")
 
                 if (obfuscatedSalt.isNullOrEmpty()) {
                     obfuscatedSalt = SecureRandom().nextLong().toString() + ""
-                    logger.logD("Creating a new salt for the default obfuscator: $salt")
+                    logger.logD("Creating a new salt for the default obfuscator: $obfuscatedSalt")
                     val obfuscatedSaltKey = c.obfuscate("key") + "!"
                     val obfuscatedSaltValue = c.obfuscate(obfuscatedSalt)
                     prefs.edit().putString(obfuscatedSaltKey, obfuscatedSaltValue).apply()
@@ -227,7 +228,7 @@ object Prefs {
 
                 salt = obfuscatedSalt.toByteArray(charset(CHARSET_UTF8))
             } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("Salt generation error for $saltPassed: ", e)
+                throw IllegalArgumentException("Salt generation error for $obfuscatedSalt: ", e)
             }
         }
         return DefaultObfuscator(pass, salt)
@@ -268,7 +269,8 @@ object Prefs {
      * All values are changed in a transaction: if an error occurs, none of them will change.
      */
     @Deprecated(CRYPTER_DEPRECATION_MESSAGE, replaceWith = ReplaceWith("changeObfuscator"))
-    @Synchronized fun changeCrypter(newObfuscator: Crypter?) =
+    @Synchronized
+    fun changeCrypter(newObfuscator: Crypter?) =
         changeObfuscator(newObfuscator?.let { CrypterToObfuscator(it) })
 
     /**
@@ -277,7 +279,8 @@ object Prefs {
      * Only preferences already set up to use an obfuscator will be changed.
      * All values are changed in a transaction: if an error occurs, none of them will change.
      */
-    @Synchronized fun changeObfuscator(newObfuscator: Obfuscator?) {
+    @Synchronized
+    fun changeObfuscator(newObfuscator: Obfuscator?) {
         val maps = HashMap<String, Map<String, Triple<String, String, String>>>(prefMap.size)
         if (mCacheEnabled) cacheMap.clear()
 
@@ -382,7 +385,7 @@ object Prefs {
             is String -> SPreference(key, value as String, prefName)
             is Long -> LPreference(key, value as Long, prefName)
             else -> null
-        } as PowerfulPreference<T>?
+        } as? PowerfulPreference<T>
             ?: throw IllegalArgumentException("Cannot understand preference type $value. Please, provide a valid class")
 
         logger.logV("Created preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
@@ -408,19 +411,17 @@ object Prefs {
         prefName: String? = null
     ): PowerfulPreference<T?> {
         val pref: PowerfulPreference<T?> = when {
-            clazz.isAssignableFrom(Int::class.java) -> IPreferenceNullable(key, value as Int?, prefName)
-            clazz.isAssignableFrom(Float::class.java) -> FPreferenceNullable(key, value as Float?, prefName)
-            clazz.isAssignableFrom(Double::class.java) -> DPreferenceNullable(key, value as Double?, prefName)
-            clazz.isAssignableFrom(Boolean::class.java) -> BPreferenceNullable(key, value as Boolean?, prefName)
-            clazz.isAssignableFrom(Long::class.java) -> LPreferenceNullable(key, value as Long?, prefName)
-            clazz.isAssignableFrom(String::class.java) -> {
-                throw IllegalArgumentException(
-                    "Cannot use String as a nullable preference. " +
-                        "Please, provide another class or specify the parse and toPreference functions."
-                )
-            }
+            clazz.isAssignableFrom(Int::class.java) -> IPreferenceNullable(key, value as? Int, prefName)
+            clazz.isAssignableFrom(Float::class.java) -> FPreferenceNullable(key, value as? Float, prefName)
+            clazz.isAssignableFrom(Double::class.java) -> DPreferenceNullable(key, value as? Double, prefName)
+            clazz.isAssignableFrom(Boolean::class.java) -> BPreferenceNullable(key, value as? Boolean, prefName)
+            clazz.isAssignableFrom(Long::class.java) -> LPreferenceNullable(key, value as? Long, prefName)
+            clazz.isAssignableFrom(String::class.java) -> throw IllegalArgumentException(
+                "Cannot use String as a nullable preference. " +
+                    "Please, provide another class or specify the parse and toPreference functions."
+            )
             else -> null
-        } as PowerfulPreference<T?>? ?: throw IllegalArgumentException(
+        } as? PowerfulPreference<T?> ?: throw IllegalArgumentException(
             "Cannot understand preference type ${clazz.name}. Please, provide a valid class"
         )
 

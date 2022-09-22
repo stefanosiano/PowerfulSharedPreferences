@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.stefanosiano.powerful_libraries.sharedpreferences.PowerfulPreference
 
-/** LiveData which automatically starts/stops observing the preferencefor changes. */
+/** LiveData which automatically starts/stops observing the preference for changes. */
 class PowerfulPreferenceLiveData<T>(private val preference: PowerfulPreference<T>) : LiveData<T>() {
     init {
         value = preference.get()

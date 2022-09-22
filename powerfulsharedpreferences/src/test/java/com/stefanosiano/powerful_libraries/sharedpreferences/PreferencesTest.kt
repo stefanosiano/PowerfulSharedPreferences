@@ -417,8 +417,8 @@ class DummyPreferenceTest : BaseTest() {
 
 class EnumPreferenceTest : BaseTest() {
 
-    private enum class EnumPref { a, b, c }
-    private val pref = EnumPreference("key", EnumPref.a, "prefName")
+    private enum class EnumPref { A, B, C }
+    private val pref = EnumPreference("key", EnumPref.A, "prefName")
 
     @Test
     fun getPrefClass() {
@@ -427,32 +427,50 @@ class EnumPreferenceTest : BaseTest() {
 
     @Test
     fun parse() {
-        assertEquals(EnumPref.c, pref.parse(EnumPref.c.name))
+        assertEquals(EnumPref.C, pref.parse(EnumPref.C.name))
     }
 
     @Test
     fun `parse empty string returns default value`() {
-        assertEquals(EnumPref.a, pref.parse(""))
+        assertEquals(EnumPref.A, pref.parse(""))
     }
 
     @Test
     fun `parse invalid value returns default value`() {
-        assertEquals(EnumPref.a, pref.parse("2"))
+        assertEquals(EnumPref.A, pref.parse("2"))
     }
 
     @Test
     fun toPreferences() {
-        assertEquals(EnumPref.b.name, pref.toPreferences(EnumPref.b))
-        assertEquals(EnumPref.c.name, pref.toPreferences(EnumPref.c))
+        assertEquals(EnumPref.B.name, pref.toPreferences(EnumPref.B))
+        assertEquals(EnumPref.C.name, pref.toPreferences(EnumPref.C))
     }
 }
 
 class ObjPreferenceTest : BaseTest() {
 
-    private data class MyClass(var first: String, var second: String) {
+    private class MyClass(var first: String, var second: String) {
         constructor(s: String) :
             this(s.split(":").getOrNull(0) ?: "", s.split(":").getOrNull(1) ?: "")
         fun toPref() = "$first:$second"
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as MyClass
+
+            if (first != other.first) return false
+            if (second != other.second) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = first.hashCode()
+            result = 31 * result + second.hashCode()
+            return result
+        }
     }
 
     private val myObj = MyClass("first:second")
@@ -496,10 +514,28 @@ class ObjPreferenceTest : BaseTest() {
 
 class ObjPreferenceNullableTest : BaseTest() {
 
-    private data class MyClass(var first: String, var second: String) {
+    private class MyClass(var first: String, var second: String) {
         constructor(s: String) :
             this(s.split(":").getOrNull(0) ?: "", s.split(":").getOrNull(1) ?: "")
         fun toPref() = "$first:$second"
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as MyClass
+
+            if (first != other.first) return false
+            if (second != other.second) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = first.hashCode()
+            result = 31 * result + second.hashCode()
+            return result
+        }
     }
 
     private val myObj = MyClass("first:second")
