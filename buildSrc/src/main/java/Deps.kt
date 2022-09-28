@@ -1,4 +1,10 @@
 object Deps {
+
+    // Sdk versions
+    const val sdkCompile = 33
+    const val sdkTarget = sdkCompile
+    const val sdkMin = 14
+
     private const val agpVersion = "7.2.1"
     private const val kotlinVersion = "1.6.10"
     private const val coroutinesVersion = "1.5.1"
@@ -18,9 +24,11 @@ object Deps {
     // Android things
     const val appCompat = "androidx.appcompat:appcompat:1.2.0"
     const val constraintLayout = "androidx.constraintlayout:constraintlayout:2.1.3"
+    const val lifecycleExtensions = "androidx.lifecycle:lifecycle-extensions:2.2.0"
 
     // Other libraries
     const val detektKtlintDependency = "io.gitlab.arturbosch.detekt:detekt-formatting:$detektPluginVersion"
+    const val powerfulSharedPreferences = "io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.19"
 
     // Test libraries
     private const val androidxTestVersion = "1.4.0"

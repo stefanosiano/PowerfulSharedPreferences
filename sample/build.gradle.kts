@@ -5,12 +5,12 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = Deps.sdkCompile
 
     defaultConfig {
         applicationId = "com.stefanosiano.powerfullibraries.sharedpreferences"
-        minSdk = 14
-        targetSdk = 32
+        minSdk = Deps.sdkMin
+        targetSdk = Deps.sdkTarget
         versionCode = 1
         versionName = "1.0"
 

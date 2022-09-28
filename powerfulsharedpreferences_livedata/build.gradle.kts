@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-    set("LIB_VERSION", "1.0.6") // This is the library version used when deploying the artifact
+    set("LIB_VERSION", "1.0.7") // This is the library version used when deploying the artifact
     set("ENABLE_DEPLOY", "true") //Flag whether the ci/cd workflow should deploy to sonatype or not
 
     set("LIB_GROUP_ID", "io.github.stefanosiano.powerful_libraries")                              // Maven Group ID for the artifact
@@ -18,11 +18,11 @@ ext {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = Deps.sdkCompile
 
     defaultConfig {
-        minSdk = 14
-        targetSdk = 32
+        minSdk = Deps.sdkMin
+        targetSdk = Deps.sdkTarget
         consumerProguardFiles("psp-proguard-rules.txt")
     }
 }
@@ -30,8 +30,8 @@ android {
 dependencies {
     implementation(Deps.kotlinStdLib)
     implementation(Deps.kotlinCoroutinesCore)
-    implementation ("androidx.lifecycle:lifecycle-extensions:2.2.0") //ViewModel and LiveData
-    implementation ("io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.19") //PowerfulSharedPreferences
+    implementation (Deps.lifecycleExtensions) //ViewModel and LiveData
+    implementation (Deps.powerfulSharedPreferences) //PowerfulSharedPreferences
     detektPlugins(Deps.detektKtlintDependency)
 }
 
