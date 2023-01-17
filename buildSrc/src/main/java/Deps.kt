@@ -5,9 +5,9 @@ object Deps {
     const val sdkTarget = sdkCompile
     const val sdkMin = 14
 
-    private const val agpVersion = "7.2.1"
-    private const val kotlinVersion = "1.6.10"
-    private const val coroutinesVersion = "1.5.1"
+    private const val agpVersion = "7.3.1"
+    private const val kotlinVersion = "1.7.10"
+    private const val coroutinesVersion = "1.6.4"
     const val detektPluginVersion = "1.19.0"
 
     // Gradle plugins
