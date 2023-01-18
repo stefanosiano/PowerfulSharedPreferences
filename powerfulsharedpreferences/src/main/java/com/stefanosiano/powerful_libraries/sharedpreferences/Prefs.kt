@@ -282,7 +282,9 @@ object Prefs {
     @Synchronized
     fun changeObfuscator(newObfuscator: Obfuscator?) {
         val maps = HashMap<String, Map<String, Triple<String, String, String>>>(prefMap.size)
-        if (mCacheEnabled) cacheMap.clear()
+        if (mCacheEnabled) {
+            cacheMap.clear()
+        }
 
         // I update the obfuscator only for preferences already using an obfuscator
         prefMap.values.filter { it.useObfuscator }.forEach { prefContainer ->
@@ -537,7 +539,7 @@ object Prefs {
                 pref.defaultValue
             }
         }
-        if (mCacheEnabled && valueToReturn != pref.defaultValue && pref !is DummyPreference) {
+        if (mCacheEnabled && pref !is DummyPreference) {
             cacheMap[pref.getCacheMapKey()] = valueToReturn
         }
         return valueToReturn
@@ -566,7 +568,9 @@ object Prefs {
     /** Stores the [value] into the [pref]. Its toPreferences() method will be called to get the string to save */
     @Synchronized
     fun <T> put(pref: PowerfulPreference<T>, value: T) {
-        if (mCacheEnabled && value != pref.defaultValue) cacheMap[pref.getCacheMapKey()] = value
+        if (mCacheEnabled) {
+            cacheMap[pref.getCacheMapKey()] = value
+        }
         prefChangedCallbacks.forEach { it.invoke(pref.key, value as Any) }
         powerfulPrefMap[pref.key]
             ?.filter { it.get()?.preferencesFileName == pref.preferencesFileName }
@@ -588,7 +592,9 @@ object Prefs {
     /** Remove the [preference]. The callback will receive the default value of the preference. */
     @Synchronized
     fun <T> remove(preference: PowerfulPreference<T>) {
-        if (mCacheEnabled) cacheMap.remove(preference.getCacheMapKey())
+        if (mCacheEnabled) {
+            cacheMap.remove(preference.getCacheMapKey())
+        }
         prefChangedCallbacks.forEach { it.invoke(preference.key, preference.defaultValue as Any) }
 
         powerfulPrefMap[preference.key]

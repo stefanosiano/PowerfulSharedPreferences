@@ -16,6 +16,11 @@ class MainActivityKotlin : Activity() {
         Preferences.preference3 = MyEnum.Enum2
 
         Log.e("ASD2", Preferences.preference1.toString())
+        Preferences.preference1 = 2
+        Log.e("ASD2", Preferences.preference1.toString())
+        Preferences.preference1 = 1
+        Log.e("ASD2", Preferences.preference1.toString())
+        Log.e("ASD2", "aaaaaaaaaaaaaaaa")
         Log.e("ASD2", Preferences.preference2.get().toString())
         Preferences.preference1 = 2
         Prefs.put(Preferences.preference2, 1.0)
