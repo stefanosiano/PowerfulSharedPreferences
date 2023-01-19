@@ -329,6 +329,15 @@ internal class PrefsTest : BaseTest() {
         assertContentEquals(listOf("2", "v"), obfuscated.values)
     }
 
+    @Test
+    fun putDefaultValueIsSavedAndReturnedByGet() {
+        // There was a bug with the cache that was not saving default value
+        fixture.prefStringPlain.put("2")
+        assertEquals("2", fixture.prefStringPlain.get())
+        fixture.prefStringPlain.put("old value")
+        assertEquals("old value", fixture.prefStringPlain.get())
+    }
+
     private fun <A, R : PowerfulPreference<A>, T> assertPrefEquals(pref: R, pref2: PowerfulPreference<T>) = assertTrue(
         pref.getClassName() == pref2.getClassName() &&
             pref.key == pref2.key &&
