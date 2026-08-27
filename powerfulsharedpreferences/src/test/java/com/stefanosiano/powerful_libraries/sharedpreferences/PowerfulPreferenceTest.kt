@@ -95,7 +95,6 @@ class PowerfulPreferenceTest : BaseTest() {
     fun flowContainsSetValue() {
         fixture.prefString.put("my value")
         assertEquals(fixture.prefString.asFlow().value, "my value")
-
     }
 
     @Test

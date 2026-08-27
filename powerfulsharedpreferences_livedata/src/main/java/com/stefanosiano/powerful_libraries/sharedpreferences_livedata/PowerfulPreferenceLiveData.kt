@@ -11,8 +11,14 @@ class PowerfulPreferenceLiveData<T>(private val preference: PowerfulPreference<T
         value = preference.get()
     }
     private val callback = { value: T -> postValue(value) }
-    override fun onInactive() { super.onInactive(); preference.stopObserve(callback) }
-    override fun onActive() { super.onActive(); preference.observe(callback) }
+    override fun onInactive() {
+        super.onInactive()
+        preference.stopObserve(callback)
+    }
+    override fun onActive() {
+        super.onActive()
+        preference.observe(callback)
+    }
 }
 
 /** Returns a [LiveData] observing the changes of the preference. */

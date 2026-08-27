@@ -88,6 +88,7 @@ naming:
     active: true
   FunctionMaxLength:
     active: true
+    excludes: [ '**/test/**', '**/androidTest/**' ]
 
 formatting:
   # We already have MaxLineLength from detekt, which is suppressed in few cases. This rule cannot be suppressed with annotations
