@@ -24,6 +24,9 @@ def sonatypeGpgKey = enableDeploy ? System.getenv('SONATYPE_GPG_KEY') : ''
 def sonatypeGpgPwd = enableDeploy ? System.getenv('SONATYPE_GPG_PWD') : ''
 def sonatypeGpgPath = enableDeploy ? System.getenv('SONATYPE_GPG_PATH') : ''
 
+// Namespace as shown in Central Portal
+def sonatypeNamespace = 'io.github.stefanosiano'
+
 //signing plugin config
 ext["signing.keyId"] = sonatypeGpgKey
 ext["signing.password"] = sonatypeGpgPwd
@@ -69,8 +72,8 @@ publishing {
         //add sonatype repo as mavenCentral (used in gradle task names later)
         maven {
             name = "mavenCentral"
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            def releasesRepoUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://central.sonatype.com/repository/maven-snapshots/"
             url = version.toString().endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
 
             credentials {
@@ -79,6 +82,7 @@ publishing {
             }
         }
     }
+
     publications {
         // Creates a Maven publication called "release"
         release(MavenPublication) {
@@ -95,6 +99,7 @@ publishing {
             } else {
                 artifact(layout.buildDirectory.file("libs/${project.getName()}-${version}.jar").get().asFile)
             }
+
             artifact(javadocJar) //add javadoc artifact
             artifact(sourcesJar) //add sources artifact
 
@@ -103,12 +108,14 @@ publishing {
                 name = libName
                 description = libDescription
                 url = siteUrl
+
                 licenses {
                     license {
                         name = 'MIT'
                         url = 'https://opensource.org/licenses/MIT'
                     }
                 }
+
                 developers {
                     developer {
                         id = 'stefanosiano'
@@ -116,16 +123,19 @@ publishing {
                         email = 'stefano.siano91@gmail.com'
                     }
                 }
+
                 scm {
                     connection = "scm:git:$gitUrl"
                     developerConnection = "scm:git:$gitUrl"
                     url = siteUrl
                 }
+
                 withXml {
                     def dependenciesNode = asNode().appendNode("dependencies")
 
                     project.configurations.implementation.allDependencies.each {
                         if (it.group == "" || it.name == "" || it.name == "unspecified") return
+
                         if (it.name.endsWith("-bom")) {
                             def dependencyNode = dependenciesManagementNode.appendNode("dependency")
                             dependencyNode.appendNode("groupId", it.group)
@@ -137,6 +147,7 @@ publishing {
                             def dependencyNode = dependenciesNode.appendNode("dependency")
                             dependencyNode.appendNode("groupId", it.group)
                             dependencyNode.appendNode("artifactId", it.name)
+
                             if (it.version != "") {
                                 dependencyNode.appendNode("version", it.version)
                             }
@@ -151,4 +162,64 @@ publishing {
 signing {
     if (!enableDeploy) return true //don't sign anything if not allowed
     sign publishing.publications.release
+}
+
+if (enableDeploy && !version.toString().endsWith("SNAPSHOT")) {
+    tasks.named("publish") {
+        finalizedBy("publishToCentralPortal")
+    }
+}
+
+
+// Gradle's built-in maven-publish plugin only uploads the files.
+// It does not tell the OSSRH Staging API that the deployment is complete.
+// This task uploads the completed deployment to the Central Publisher Portal.
+task publishToMavenCentral {
+    doLast {
+        def token = "${sonatypeUser}:${sonatypePwd}"
+        def encodedToken = token.getBytes("UTF-8").encodeBase64().toString()
+
+        def url = new URL(
+                "https://ossrh-staging-api.central.sonatype.com" +
+                        "/manual/upload/defaultRepository/" +
+                        sonatypeNamespace
+        )
+
+        println "Transferring deployment to Central Publisher Portal..."
+
+        def connection = url.openConnection()
+
+        connection.setRequestMethod("POST")
+        connection.setDoOutput(true)
+
+        connection.setRequestProperty(
+                "Authorization",
+                "Bearer ${encodedToken}"
+        )
+
+        connection.setRequestProperty(
+                "Accept",
+                "application/json"
+        )
+
+        connection.outputStream.close()
+
+        def responseCode = connection.responseCode
+
+        if (responseCode < 200 || responseCode >= 300) {
+            def errorResponse = ""
+
+            if (connection.errorStream != null) {
+                errorResponse = connection.errorStream.getText("UTF-8")
+            }
+
+            throw new GradleException(
+                    "Failed to transfer deployment to Central Publisher Portal. " +
+                            "HTTP ${responseCode}: ${errorResponse}"
+            )
+        }
+
+        println "Deployment successfully transferred to Central Publisher Portal."
+        println "Open https://central.sonatype.com/publishing to review it."
+    }
 }
