@@ -1,9 +1,14 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
 import android.content.Context
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertSame
 
 class PowerfulPreferenceTest : BaseTest() {
 
@@ -84,6 +89,42 @@ class PowerfulPreferenceTest : BaseTest() {
         fixture.prefString.callOnChange("change")
         assertEquals(3, changes)
         assertEquals("change", sValue)
+    }
+
+    @Test
+    fun flowContainsSetValue() {
+        fixture.prefString.put("my value")
+        assertEquals(fixture.prefString.asFlow().value, "my value")
+
+    }
+
+    @Test
+    fun flowCallbackCalledOnlyOnce() {
+        var changes = 0
+        val flow1 = fixture.prefString.asFlow()
+        val flow2 = fixture.prefString.asFlow()
+        assertSame(flow1, flow2)
+
+        GlobalScope.launch {
+            flow1.onEach {
+                changes++
+            }.collect()
+        }
+        assertEquals(flow1.value, "default value")
+        assertEquals(flow2.value, "default value")
+        fixture.prefString.put("new value")
+        assertEquals(flow1.value, "new value")
+        assertEquals(flow2.value, "new value")
+        // This should be ignored, as the value didn't change
+        fixture.prefString.put("new value")
+
+        var waitCycles = 0
+        // sleep at most 3 times to let the flow update the value on background. Will fail if it doesn't
+        while (changes == 0 && waitCycles < 3) {
+            waitCycles++
+            Thread.sleep(100)
+        }
+        assertEquals(changes, 1)
     }
 
     @Test

@@ -1,5 +1,8 @@
 package com.stefanosiano.powerful_libraries.sharedpreferences
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.reflect.KProperty
 
 /** Object that represents an object saved in the shared preferences. */
@@ -21,16 +24,40 @@ abstract class PowerfulPreference<T> (
     /** List of callbacks to call when the preference changes. */
     private val changeCallbacks = ArrayList<(value: T) -> Unit>()
 
+    /** [MutableStateFlow] containing the value of this preference. */
+    private val _flow: MutableStateFlow<T> by lazy { MutableStateFlow(defaultValue) }
+
+    /** [StateFlow] exposable through APIs. */
+    private val flow = _flow.asStateFlow()
+
+    private val flowChangeCallback: (value: T) -> Unit = { _flow.value = it }
+
     protected constructor(key: String, defaultValue: T) : this(key, defaultValue, null)
 
     /**
      * Observes the preference. When it changes, the function is called.
      * NOTE: When preferences are cleared, the function is NOT called.
      */
-    fun observe(onChange: (value: T) -> Unit): PowerfulPreference<T> { changeCallbacks.add(onChange); return this }
+    fun observe(onChange: (value: T) -> Unit): PowerfulPreference<T> {
+        changeCallbacks.add(onChange)
+        return this
+    }
 
     /** Stops observing the preference. */
     fun stopObserve(onChange: (value: T) -> Unit) = changeCallbacks.remove(onChange)
+
+    /**
+     * Returns the preference as a read-only [StateFlow].
+     * Calling [asFlow] multiple times returns the same instance: `pref.asFlow() === pref.asFlow()`
+     * Updating the preference with the same value as before is ignored by the flow.
+     */
+    fun asFlow(): StateFlow<T> {
+        if (!changeCallbacks.contains(flowChangeCallback)) {
+            observe(flowChangeCallback)
+            _flow.value = get()
+        }
+        return flow
+    }
 
     internal fun callOnChange(value: T) { changeCallbacks.forEach { it.invoke(value) } }
 

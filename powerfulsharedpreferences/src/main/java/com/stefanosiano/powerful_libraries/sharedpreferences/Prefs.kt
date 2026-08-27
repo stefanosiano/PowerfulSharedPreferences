@@ -193,6 +193,9 @@ object Prefs {
             salt = ByteArray(0)
         }
 
+        /**
+         * SharedPreferences wrapper class, with added features like obfuscation, logging and type safety.
+         */
         companion object {
             /** No logs, anywhere. Should be used in release builds. */
             const val LOG_DISABLED = 0
@@ -488,8 +491,7 @@ object Prefs {
      *
      * Note: For other types refer to [newPref]
      */
-    fun <T : Enum<T>> newEnumPref(key: String, value: T, prefName: String? = null):
-        PowerfulPreference<T> {
+    fun <T : Enum<T>> newEnumPref(key: String, value: T, prefName: String? = null): PowerfulPreference<T> {
         val preference: PowerfulPreference<T> = EnumPreference(key, value, prefName)
         logger.logV("Created enum preference $key : ${preference.toPreferences(value)} (${preference.getClassName()})")
         return preference

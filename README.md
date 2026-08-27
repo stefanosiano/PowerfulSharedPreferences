@@ -152,6 +152,8 @@ You can observe globally the changes of the sharedPreferences through ```Prefs.o
 Alternatively, you can observe the changes of a single PowerfulPreference object through ```preference.observe { value -> }```.  
 **Note that when you use these methods, you will have to call the stopObserve() method!**  
   
+Each preference can return a flow using `asFlow()`, with its value updated automatically every time the preference changes.  
+  
 Finally, you can use the provided powerfulsharedpreferences_livedata library to use the preferences as LiveData, using ```preference.observe (LifecycleOwner, Observer{ value -> } )```.  
 **When using the live data, you don't have to call the stopObserve() method**  
   
@@ -164,8 +166,8 @@ Gradle
   
 ```
 dependencies {
-    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.21' // Put this line into module's build.gradle
-    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences_livedata:1.0.8' // Put this line if you want to use a preference as a live data
+    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences:1.1.0' // Put this line into module's build.gradle
+    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences_livedata:1.1.0' // Put this line if you want to use a preference as a live data
 }
 ```
   

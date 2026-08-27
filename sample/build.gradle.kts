@@ -1,11 +1,15 @@
 plugins {
     id(Deps.androidApplication)
     id(Deps.detektPlugin)
-    kotlin("android")
 }
 
 android {
+    namespace = "com.stefanosiano.powerful_libraries.sharedpreferencessample"
     compileSdk = Deps.sdkCompile
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.stefanosiano.powerfullibraries.sharedpreferences"
@@ -25,20 +29,14 @@ android {
         debug {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(project(":powerfulsharedpreferences"))
     implementation(Deps.constraintLayout)
-    implementation(Deps.kotlinStdLib)
     implementation(Deps.kotlinCoroutinesCore)
 
     detektPlugins(Deps.detektKtlintDependency)
@@ -46,7 +44,7 @@ dependencies {
 
 detekt {
     toolVersion = Deps.detektPluginVersion
-    config = files("${rootDir}/config/detekt/detekt.yml")
+    config.setFrom("${rootDir}/config/detekt/detekt.yml")
 //    allRules = true
     buildUponDefaultConfig = true
     autoCorrect = false

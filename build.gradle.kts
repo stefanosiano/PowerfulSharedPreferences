@@ -9,7 +9,6 @@ buildscript {
     }
     dependencies {
         classpath(Deps.androidGradlePlugin)
-        classpath(Deps.kotlinGradlePlugin)
     }
 }
 
@@ -22,6 +21,6 @@ allprojects {
 
 detekt {
     toolVersion = Deps.detektPluginVersion
-    config = files("config/detekt/detekt.yml")
+    config.setFrom("config/detekt/detekt.yml")
     buildUponDefaultConfig = true
 }

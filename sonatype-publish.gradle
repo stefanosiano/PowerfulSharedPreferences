@@ -33,7 +33,6 @@ task androidJavadocs(type: Javadoc) {
     excludes = ['**/*.kt'] // < ---- Exclude all kotlin files from javadoc file.
     if (project.plugins.findPlugin("com.android.library")) {
         source = android.sourceSets.main.java.srcDirs
-        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
     else {
         source = sourceSets.main.java.srcDirs
@@ -92,9 +91,9 @@ publishing {
 
             // Add aar/jar to artifacts to upload
             if (project.plugins.findPlugin("com.android.library")) {
-                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+                artifact(layout.buildDirectory.file("outputs/aar/${project.getName()}-release.aar").get().asFile)
             } else {
-                artifact("$buildDir/libs/${project.getName()}-${version}.jar")
+                artifact(layout.buildDirectory.file("libs/${project.getName()}-${version}.jar").get().asFile)
             }
             artifact(javadocJar) //add javadoc artifact
             artifact(sourcesJar) //add sources artifact
