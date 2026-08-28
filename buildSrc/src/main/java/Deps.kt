@@ -26,7 +26,7 @@ object Deps {
 
     // Other libraries
     const val detektKtlintDependency = "io.gitlab.arturbosch.detekt:detekt-formatting:$detektPluginVersion"
-    const val powerfulSharedPreferences = "io.github.stefanosiano.powerful_libraries:sharedpreferences:1.0.19"
+    const val powerfulSharedPreferences = "io.github.stefanosiano.powerful_libraries:sharedpreferences:1.2.0"
 
     // Test libraries
     private const val androidxTestVersion = "1.6.1"

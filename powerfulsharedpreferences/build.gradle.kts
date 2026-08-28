@@ -4,7 +4,7 @@ plugins {
 }
 
 ext {
-    set("LIB_VERSION", "1.1.0") // This is the library version used when deploying the artifact
+    set("LIB_VERSION", "1.2.0") // This is the library version used when deploying the artifact
     set("ENABLE_DEPLOY", "true") //Flag whether the ci/cd workflow should deploy to sonatype or not
 
     set("LIB_GROUP_ID", "io.github.stefanosiano.powerful_libraries")                              // Maven Group ID for the artifact
@@ -23,6 +23,13 @@ android {
     defaultConfig {
         minSdk = Deps.sdkMin
         consumerProguardFiles("psp-proguard-rules.txt")
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
 
