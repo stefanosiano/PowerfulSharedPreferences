@@ -166,8 +166,8 @@ Gradle
   
 ```
 dependencies {
-    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences:1.1.0' // Put this line into module's build.gradle
-    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences_livedata:1.1.0' // Put this line if you want to use a preference as a live data
+    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences:1.2.0' // Put this line into module's build.gradle
+    implementation 'io.github.stefanosiano.powerful_libraries:sharedpreferences_livedata:1.2.0' // Put this line if you want to use a preference as a live data
 }
 ```
   
