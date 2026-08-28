@@ -17,7 +17,7 @@ def libDescription = LIB_DESCRIPTION // Library description
 group = libGroupId
 version = libVersion
 
-//retrieve variables from system environmental variables
+// retrieve variables from system environmental variables
 def sonatypeUser = enableDeploy ? System.getenv('SONATYPE_USER') : ''
 def sonatypePwd = enableDeploy ? System.getenv('SONATYPE_PWD') : ''
 def sonatypeGpgKey = enableDeploy ? System.getenv('SONATYPE_GPG_KEY') : ''
@@ -27,31 +27,34 @@ def sonatypeGpgPath = enableDeploy ? System.getenv('SONATYPE_GPG_PATH') : ''
 // Namespace as shown in Central Portal
 def sonatypeNamespace = 'io.github.stefanosiano'
 
-//signing plugin config
+// signing plugin config
 ext["signing.keyId"] = sonatypeGpgKey
 ext["signing.password"] = sonatypeGpgPwd
 ext["signing.secretKeyRingFile"] = sonatypeGpgPath
 
 task androidJavadocs(type: Javadoc) {
-    excludes = ['**/*.kt'] // < ---- Exclude all kotlin files from javadoc file.
+    excludes = ['**/*.kt']
+
     if (project.plugins.findPlugin("com.android.library")) {
         source = android.sourceSets.main.java.srcDirs
-    }
-    else {
+    } else {
         source = sourceSets.main.java.srcDirs
     }
 }
 
 task javadocJar(type: Jar, dependsOn: androidJavadocs) {
     archiveClassifier.set('javadoc')
-    if (project.plugins.findPlugin("com.android.library"))
+
+    if (project.plugins.findPlugin("com.android.library")) {
         from androidJavadocs.destinationDir
-    else
+    } else {
         from javadoc.destinationDir
+    }
 }
 
 task sourcesJar(type: Jar) {
     archiveClassifier.set('sources')
+
     if (project.plugins.findPlugin("com.android.library")) {
         from android.sourceSets.main.java.srcDirs
         from android.sourceSets.main.kotlin.srcDirs
@@ -65,16 +68,21 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-
-//publish plugin config
+// publish plugin config
 publishing {
     repositories {
-        //add sonatype repo as mavenCentral (used in gradle task names later)
+        // add sonatype repo as mavenCentral
         maven {
             name = "mavenCentral"
-            def releasesRepoUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://central.sonatype.com/repository/maven-snapshots/"
-            url = version.toString().endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
+
+            def releasesRepoUrl =
+                    "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl =
+                    "https://central.sonatype.com/repository/maven-snapshots/"
+
+            url = version.toString().endsWith("SNAPSHOT")
+                    ? snapshotsRepoUrl
+                    : releasesRepoUrl
 
             credentials {
                 username = sonatypeUser
@@ -84,26 +92,26 @@ publishing {
     }
 
     publications {
-        // Creates a Maven publication called "release"
         release(MavenPublication) {
-            if (!enableDeploy) return true //if ci/cd still build the project, will only upload a pom file
+            if (!enableDeploy) return true
 
-            // Publication config
             groupId = libGroupId
             artifactId = libArtifactId
             version = libVersion
 
-            // Add aar/jar to artifacts to upload
+            // Add AAR/JAR to artifacts
             if (project.plugins.findPlugin("com.android.library")) {
-                artifact(layout.buildDirectory.file("outputs/aar/${project.getName()}-release.aar").get().asFile)
+                artifact(tasks.named("bundleReleaseAar"))
             } else {
-                artifact(layout.buildDirectory.file("libs/${project.getName()}-${version}.jar").get().asFile)
+                artifact(layout.buildDirectory.file(
+                        "libs/${project.getName()}-${version}.jar"
+                ))
             }
 
-            artifact(javadocJar) //add javadoc artifact
-            artifact(sourcesJar) //add sources artifact
+            artifact(javadocJar)
+            artifact(sourcesJar)
 
-            //pom file config
+            // pom file config
             pom {
                 name = libName
                 description = libDescription
@@ -137,14 +145,18 @@ publishing {
                         if (it.group == "" || it.name == "" || it.name == "unspecified") return
 
                         if (it.name.endsWith("-bom")) {
-                            def dependencyNode = dependenciesManagementNode.appendNode("dependency")
+                            def dependencyNode =
+                                    dependenciesManagementNode.appendNode("dependency")
+
                             dependencyNode.appendNode("groupId", it.group)
                             dependencyNode.appendNode("artifactId", it.name)
                             dependencyNode.appendNode("version", it.version)
                             dependencyNode.appendNode("scope", "import")
                             dependencyNode.appendNode("type", "pom")
                         } else {
-                            def dependencyNode = dependenciesNode.appendNode("dependency")
+                            def dependencyNode =
+                                    dependenciesNode.appendNode("dependency")
+
                             dependencyNode.appendNode("groupId", it.group)
                             dependencyNode.appendNode("artifactId", it.name)
 
@@ -160,7 +172,8 @@ publishing {
 }
 
 signing {
-    if (!enableDeploy) return true //don't sign anything if not allowed
+    if (!enableDeploy) return true
+
     sign publishing.publications.release
 }
 
@@ -169,7 +182,6 @@ if (enableDeploy && !version.toString().endsWith("SNAPSHOT")) {
         finalizedBy("publishToCentralPortal")
     }
 }
-
 
 // Gradle's built-in maven-publish plugin only uploads the files.
 // It does not tell the OSSRH Staging API that the deployment is complete.
